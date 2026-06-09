@@ -1,0 +1,2111 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COT — Company Outreach Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f4f6fb;
+    --surface: #ffffff;
+    --surface2: #f0f3fa;
+    --border: #e2e8f4;
+    --text: #1a2236;
+    --text-muted: #6b7a99;
+    --text-light: #9ba8c0;
+    --primary: #2255d4;
+    --primary-light: #eef2ff;
+    --primary-mid: #c7d4f8;
+    --accent: #0ea5e9;
+    --success: #10b981;
+    --success-bg: #ecfdf5;
+    --warning: #f59e0b;
+    --warning-bg: #fffbeb;
+    --danger: #ef4444;
+    --danger-bg: #fef2f2;
+    --purple: #8b5cf6;
+    --purple-bg: #f5f3ff;
+    --sidebar-w: 220px;
+    --header-h: 60px;
+    --radius: 10px;
+    --shadow: 0 1px 4px rgba(30,50,100,0.07), 0 4px 16px rgba(30,50,100,0.06);
+    --shadow-sm: 0 1px 3px rgba(30,50,100,0.08);
+    --transition: 0.2s ease;
+  }
+
+  [data-theme="dark"] {
+    --bg: #0f1420;
+    --surface: #161d2e;
+    --surface2: #1c2438;
+    --border: #252f45;
+    --text: #e4eaf8;
+    --text-muted: #8a96b4;
+    --text-light: #5a6484;
+    --primary: #4d7ef7;
+    --primary-light: #1a2544;
+    --primary-mid: #253460;
+    --success-bg: #0a2318;
+    --warning-bg: #231a05;
+    --danger-bg: #220e0e;
+    --purple-bg: #1a1230;
+    --shadow: 0 1px 4px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.25);
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.25);
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    transition: background var(--transition), color var(--transition);
+  }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+    transition: transform var(--transition), background var(--transition), border-color var(--transition);
+    overflow: hidden;
+  }
+
+  .sidebar-brand {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .brand-icon {
+    width: 32px; height: 32px;
+    background: var(--primary);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    flex-shrink: 0;
+  }
+
+  .brand-text { flex: 1; min-width: 0; }
+  .brand-name { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+  .brand-sub { font-size: 10.5px; color: var(--text-muted); margin-top: 1px; }
+
+  .sidebar-nav { flex: 1; overflow-y: auto; padding: 12px 10px; }
+
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-light);
+    padding: 12px 10px 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 13.5px;
+    font-weight: 400;
+    transition: all var(--transition);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  .nav-item svg { flex-shrink: 0; opacity: 0.7; }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: var(--primary-light); color: var(--primary); font-weight: 500; }
+  .nav-item.active svg { opacity: 1; }
+
+  .nav-badge {
+    margin-left: auto;
+    background: var(--primary);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 10px;
+    line-height: 16px;
+  }
+
+  .sidebar-footer {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .user-pill {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: var(--surface2);
+    cursor: pointer;
+  }
+
+  .user-avatar {
+    width: 28px; height: 28px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-size: 12.5px; font-weight: 500; color: var(--text); }
+  .user-role { font-size: 11px; color: var(--text-muted); }
+
+  /* ===== MAIN LAYOUT ===== */
+  .main-wrap {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    transition: margin-left var(--transition);
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    height: var(--header-h);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 90;
+    transition: background var(--transition), border-color var(--transition);
+  }
+
+  .menu-toggle {
+    display: none;
+    width: 34px; height: 34px;
+    border: none;
+    background: var(--surface2);
+    border-radius: 7px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .header-title { font-size: 16px; font-weight: 600; color: var(--text); flex-shrink: 0; }
+
+  .search-wrap {
+    flex: 1;
+    max-width: 380px;
+    position: relative;
+  }
+
+  .search-wrap svg {
+    position: absolute;
+    left: 10px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 8px 12px 8px 34px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface2);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13.5px;
+    outline: none;
+    transition: all var(--transition);
+  }
+
+  .search-input:focus { border-color: var(--primary); background: var(--surface); box-shadow: 0 0 0 3px var(--primary-light); }
+  .search-input::placeholder { color: var(--text-light); }
+
+  .header-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+
+  .btn-icon {
+    width: 34px; height: 34px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all var(--transition);
+  }
+
+  .btn-icon:hover { background: var(--surface2); color: var(--text); }
+
+  .theme-toggle {
+    width: 34px; height: 34px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all var(--transition);
+  }
+
+  .btn-primary {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 14px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+    white-space: nowrap;
+  }
+
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+
+  /* ===== PAGE CONTENT ===== */
+  .page { display: none; flex: 1; overflow-y: auto; }
+  .page.active { display: block; }
+
+  .page-content { padding: 24px; }
+
+  /* ===== DASHBOARD ===== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--transition), background var(--transition), border-color var(--transition);
+    cursor: default;
+  }
+
+  .stat-card:hover { box-shadow: var(--shadow); }
+
+  .stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; font-weight: 400; }
+  .stat-value { font-size: 28px; font-weight: 700; color: var(--text); letter-spacing: -1px; line-height: 1; }
+  .stat-sub { font-size: 11.5px; color: var(--text-light); margin-top: 6px; }
+
+  .stat-card.blue .stat-value { color: var(--primary); }
+  .stat-card.green .stat-value { color: var(--success); }
+  .stat-card.orange .stat-value { color: var(--warning); }
+  .stat-card.red .stat-value { color: var(--danger); }
+  .stat-card.purple .stat-value { color: var(--purple); }
+
+  .stat-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+
+  /* ===== DASHBOARD GRID ===== */
+  .dash-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .section-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    transition: background var(--transition), border-color var(--transition);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .section-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+
+  /* ===== PROGRESS BARS ===== */
+  .progress-list { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+
+  .progress-item {}
+  .progress-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+  .progress-label { font-size: 13px; color: var(--text); font-weight: 400; }
+  .progress-pct { font-size: 12.5px; color: var(--text-muted); font-weight: 500; }
+  .progress-bar-bg { height: 6px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; border-radius: 4px; transition: width 0.8s cubic-bezier(.4,0,.2,1); }
+
+  /* ===== ACTIVITY LIST ===== */
+  .activity-list { padding: 8px 0; }
+  .activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    transition: background var(--transition);
+  }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-item:hover { background: var(--surface2); }
+
+  .activity-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  .activity-content { flex: 1; min-width: 0; }
+  .activity-text { font-size: 13px; color: var(--text); line-height: 1.4; }
+  .activity-time { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ===== INSIGHTS STRIP ===== */
+  .insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .insight-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow-sm);
+    transition: background var(--transition), border-color var(--transition);
+  }
+
+  .insight-icon {
+    width: 38px; height: 38px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 16px;
+  }
+
+  .insight-content {}
+  .insight-value { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+  .insight-label { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+
+  /* ===== TABLE PAGE ===== */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .filter-select {
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color var(--transition);
+  }
+
+  .filter-select:focus { border-color: var(--primary); }
+
+  .btn-outline {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all var(--transition);
+    white-space: nowrap;
+  }
+
+  .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+  .btn-success {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 12px;
+    border: 1px solid var(--success);
+    background: var(--success-bg);
+    color: var(--success);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all var(--transition);
+    white-space: nowrap;
+  }
+
+  .btn-success:hover { background: var(--success); color: #fff; }
+
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    transition: background var(--transition), border-color var(--transition);
+  }
+
+  .table-scroll { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1000px;
+  }
+
+  thead th {
+    padding: 11px 14px;
+    text-align: left;
+    font-size: 11.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: color var(--transition);
+  }
+
+  thead th:hover { color: var(--text); }
+  thead th.sort-asc::after { content: ' ↑'; }
+  thead th.sort-desc::after { content: ' ↓'; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background var(--transition);
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+
+  td {
+    padding: 11px 14px;
+    font-size: 13px;
+    color: var(--text);
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  .td-company { font-weight: 500; color: var(--text); }
+  .td-email { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-muted); }
+  .td-phone { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-muted); }
+
+  /* ===== BADGES / CHIPS ===== */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .badge-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+  .badge-not { background: var(--surface2); color: var(--text-muted); }
+  .badge-not .badge-dot { background: var(--text-muted); }
+
+  .badge-contacted { background: var(--primary-light); color: var(--primary); }
+  .badge-contacted .badge-dot { background: var(--primary); }
+
+  .badge-email { background: #e0f2fe; color: #0369a1; }
+  [data-theme="dark"] .badge-email { background: #0c2a3e; color: #38bdf8; }
+  .badge-email .badge-dot { background: #0369a1; }
+
+  .badge-replied { background: var(--success-bg); color: var(--success); }
+  .badge-replied .badge-dot { background: var(--success); }
+
+  .badge-interested { background: var(--purple-bg); color: var(--purple); }
+  .badge-interested .badge-dot { background: var(--purple); }
+
+  .badge-data { background: var(--warning-bg); color: var(--warning); }
+  .badge-data .badge-dot { background: var(--warning); }
+
+  .badge-msg { background: #fce7f3; color: #be185d; }
+  [data-theme="dark"] .badge-msg { background: #2d0d1e; color: #f472b6; }
+  .badge-msg .badge-dot { background: #be185d; }
+
+  .badge-followup { background: #fff7ed; color: #c2410c; }
+  [data-theme="dark"] .badge-followup { background: #2d1505; color: #fb923c; }
+  .badge-followup .badge-dot { background: #c2410c; }
+
+  .bool-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px; height: 20px;
+    border-radius: 5px;
+    font-size: 11px;
+  }
+
+  .bool-yes { background: var(--success-bg); color: var(--success); }
+  .bool-no { background: var(--surface2); color: var(--text-light); }
+
+  /* ===== ROW ACTIONS ===== */
+  .row-actions { display: flex; gap: 4px; }
+
+  .action-btn {
+    padding: 4px 9px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 11.5px;
+    cursor: pointer;
+    transition: all var(--transition);
+    white-space: nowrap;
+  }
+
+  .action-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+  .action-btn.danger:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-bg); }
+
+  .table-footer {
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--border);
+    font-size: 12.5px;
+    color: var(--text-muted);
+    background: var(--surface2);
+  }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(2px);
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 14px;
+    width: 100%;
+    max-width: 640px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    animation: slideUp 0.25s ease;
+    transition: background var(--transition);
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .modal-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .modal-close {
+    width: 28px; height: 28px;
+    border: none;
+    background: var(--surface2);
+    border-radius: 7px;
+    cursor: pointer;
+    color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    transition: all var(--transition);
+  }
+
+  .modal-close:hover { background: var(--danger-bg); color: var(--danger); }
+
+  .modal-body { padding: 20px 24px; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-grid .full { grid-column: 1 / -1; }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-size: 12.5px; font-weight: 500; color: var(--text-muted); }
+
+  .form-input, .form-select, .form-textarea {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface2);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13.5px;
+    outline: none;
+    transition: all var(--transition);
+    width: 100%;
+  }
+
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--primary);
+    background: var(--surface);
+    box-shadow: 0 0 0 3px var(--primary-light);
+  }
+
+  .form-textarea { resize: vertical; min-height: 72px; }
+
+  .checkboxes-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+
+  .checkbox-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--text-muted);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .checkbox-item input { accent-color: var(--primary); width: 14px; height: 14px; cursor: pointer; }
+
+  .modal-footer {
+    padding: 16px 24px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .btn-ghost {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13.5px;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+
+  .btn-ghost:hover { background: var(--surface2); }
+
+  /* ===== VIEW MODAL ===== */
+  .view-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .view-item {}
+  .view-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 4px; }
+  .view-value { font-size: 13.5px; color: var(--text); }
+  .view-notes { grid-column: 1 / -1; }
+
+  /* ===== FOLLOWUPS PAGE ===== */
+  .followup-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .followup-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: var(--shadow-sm);
+    transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+  }
+
+  .followup-card:hover { box-shadow: var(--shadow); }
+
+  .followup-date {
+    width: 54px; flex-shrink: 0;
+    text-align: center;
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 8px 6px;
+  }
+
+  .fdate-day { font-size: 20px; font-weight: 700; color: var(--text); line-height: 1; }
+  .fdate-month { font-size: 10.5px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
+
+  .followup-info { flex: 1; min-width: 0; }
+  .followup-company { font-size: 14px; font-weight: 600; color: var(--text); }
+  .followup-meta { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; }
+
+  .followup-status { flex-shrink: 0; }
+
+  .overdue .followup-date { background: var(--danger-bg); }
+  .overdue .fdate-day { color: var(--danger); }
+
+  .today .followup-date { background: var(--primary-light); }
+  .today .fdate-day { color: var(--primary); }
+
+  /* ===== STATUS TRACKER PAGE ===== */
+  .tracker-section { margin-bottom: 28px; }
+  .tracker-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+
+  .tracker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+
+  .tracker-mini-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 12px 16px;
+    transition: background var(--transition), border-color var(--transition);
+  }
+
+  .tracker-mini-company { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .tracker-mini-contact { font-size: 11.5px; color: var(--text-muted); margin-bottom: 8px; }
+  .tracker-mini-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+
+  /* ===== REPORTS PAGE ===== */
+  .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+
+  .chart-bar-wrap { padding: 20px; }
+
+  .bar-item { margin-bottom: 14px; }
+  .bar-label-row {
+    display: flex; justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 13px; color: var(--text);
+  }
+  .bar-count { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+  .bar-bg { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; }
+
+  /* ===== SETTINGS PAGE ===== */
+  .settings-section { margin-bottom: 28px; }
+  .settings-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  .settings-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-label { font-size: 13.5px; color: var(--text); }
+  .settings-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .toggle-switch {
+    width: 40px; height: 22px;
+    background: var(--border);
+    border-radius: 11px;
+    position: relative;
+    cursor: pointer;
+    transition: background var(--transition);
+  }
+
+  .toggle-switch.on { background: var(--primary); }
+
+  .toggle-knob {
+    width: 16px; height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    position: absolute;
+    top: 3px; left: 3px;
+    transition: transform var(--transition);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+
+  .toggle-switch.on .toggle-knob { transform: translateX(18px); }
+
+  /* ===== TOAST ===== */
+  .toast-container {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  .toast {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    font-size: 13.5px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    pointer-events: all;
+    animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+    max-width: 320px;
+  }
+
+  .toast-icon { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; color: #fff; }
+  .toast-success .toast-icon { background: var(--success); }
+  .toast-info .toast-icon { background: var(--primary); }
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes toastOut {
+    from { opacity: 1; }
+    to { opacity: 0; pointer-events: none; }
+  }
+
+  /* ===== EMPTY STATE ===== */
+  .empty-state {
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--text-muted);
+  }
+
+  .empty-state-icon { font-size: 36px; margin-bottom: 12px; }
+  .empty-state-text { font-size: 14px; }
+
+  /* ===== LEGEND ===== */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+
+  /* ===== PAGE TITLES ===== */
+  .page-header {
+    margin-bottom: 20px;
+  }
+
+  .page-title { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.4px; }
+  .page-desc { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+  /* ===== OVERLAY for mobile ===== */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 99;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 900px) {
+    :root { --sidebar-w: 0px; }
+    .sidebar { transform: translateX(-220px); width: 220px; }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-overlay { display: block; }
+    .sidebar-overlay.open { display: block; }
+    .main-wrap { margin-left: 0; }
+    .menu-toggle { display: flex; }
+    .dash-grid { grid-template-columns: 1fr; }
+    .report-grid { grid-template-columns: 1fr; }
+    .header-title { display: none; }
+    .stats-grid { grid-template-columns: repeat(3, 1fr); }
+    .insights-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 560px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-grid .full { grid-column: 1; }
+    .view-grid { grid-template-columns: 1fr; }
+    .page-content { padding: 16px; }
+    .toolbar { gap: 6px; }
+    .insights-grid { grid-template-columns: 1fr 1fr; }
+    .header { padding: 0 14px; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">COT</div>
+    <div class="brand-text">
+      <div class="brand-name">COT</div>
+      <div class="brand-sub">Outreach Tracker</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Main</div>
+    <div class="nav-item active" data-page="dashboard" onclick="navTo('dashboard', this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" data-page="companies" onclick="navTo('companies', this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Companies
+      <span class="nav-badge" id="total-badge">0</span>
+    </div>
+    <div class="nav-item" data-page="followups" onclick="navTo('followups', this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Follow-ups
+      <span class="nav-badge" id="followup-badge">0</span>
+    </div>
+    <div class="nav-item" data-page="tracker" onclick="navTo('tracker', this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Status Tracker
+    </div>
+    <div class="nav-item" data-page="reports" onclick="navTo('reports', this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Reports
+    </div>
+    <div class="nav-section-label">System</div>
+    <div class="nav-item" data-page="settings" onclick="navTo('settings', this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/><path d="M12 2v4M12 18v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M2 12h4M18 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      Settings
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-pill">
+      <div class="user-avatar">JD</div>
+      <div class="user-info">
+        <div class="user-name">James Dawson</div>
+        <div class="user-role">Sales Manager</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- Main Wrap -->
+<div class="main-wrap">
+
+  <!-- Header -->
+  <header class="header">
+    <button class="menu-toggle" onclick="toggleSidebar()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <span class="header-title" id="header-title">Dashboard</span>
+    <div class="search-wrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="search-input" id="global-search" type="text" placeholder="Search companies, contacts…" oninput="handleSearch(this.value)">
+    </div>
+    <div class="header-actions">
+      <button class="btn-icon" onclick="exportCSV()" title="Export CSV">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </button>
+      <button class="btn-icon" onclick="showImportUI()" title="Import">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      </button>
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+        <svg id="sun-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg id="moon-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      </button>
+      <button class="btn-primary" onclick="openAddModal()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Company
+      </button>
+    </div>
+  </header>
+
+  <!-- Dashboard Page -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-title">Dashboard</div>
+        <div class="page-desc">Overview of your outreach pipeline — <span id="dash-date"></span></div>
+      </div>
+
+      <!-- Stat Cards -->
+      <div class="stats-grid" id="stats-grid"></div>
+
+      <!-- Insights -->
+      <div class="insights-grid" id="insights-grid"></div>
+
+      <!-- Analytics + Activity -->
+      <div class="dash-grid">
+        <div class="section-card">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Outreach Analytics</div>
+              <div class="section-subtitle">Conversion rates across pipeline stages</div>
+            </div>
+          </div>
+          <div class="progress-list" id="analytics-bars"></div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Recent Activity</div>
+              <div class="section-subtitle">Latest status updates</div>
+            </div>
+          </div>
+          <div class="activity-list" id="activity-list"></div>
+        </div>
+      </div>
+
+      <!-- Industry Breakdown -->
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">Industry Breakdown</div>
+        </div>
+        <div class="chart-bar-wrap" id="industry-bars"></div>
+        <div class="legend">
+          <div class="legend-item"><span class="stat-dot" style="background:var(--primary)"></span> Contacted</div>
+          <div class="legend-item"><span class="stat-dot" style="background:var(--success)"></span> Replied</div>
+          <div class="legend-item"><span class="stat-dot" style="background:var(--purple)"></span> Interested</div>
+          <div class="legend-item"><span class="stat-dot" style="background:var(--text-muted)"></span> Not Contacted</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Companies Page -->
+  <div class="page" id="page-companies">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-title">Companies</div>
+        <div class="page-desc">All company records with outreach status</div>
+      </div>
+      <div class="toolbar">
+        <select class="filter-select" id="filter-status" onchange="applyFilters()">
+          <option value="">All Statuses</option>
+          <option value="Not Contacted">Not Contacted</option>
+          <option value="Contacted">Contacted</option>
+          <option value="Email Sent">Email Sent</option>
+          <option value="Replied">Replied</option>
+          <option value="Interested">Interested</option>
+          <option value="Data Sent">Data Sent</option>
+          <option value="Message Sent">Message Sent</option>
+          <option value="Follow-up Sent">Follow-up Sent</option>
+        </select>
+        <select class="filter-select" id="filter-assigned" onchange="applyFilters()">
+          <option value="">All Team Members</option>
+          <option>James Dawson</option>
+          <option>Sarah Kim</option>
+          <option>Ali Raza</option>
+          <option>Nina Patel</option>
+          <option>Tom Brooks</option>
+        </select>
+        <select class="filter-select" id="filter-industry" onchange="applyFilters()">
+          <option value="">All Industries</option>
+          <option>Technology</option>
+          <option>Finance</option>
+          <option>Healthcare</option>
+          <option>Retail</option>
+          <option>Manufacturing</option>
+          <option>Real Estate</option>
+          <option>Logistics</option>
+          <option>Education</option>
+          <option>Media</option>
+        </select>
+        <button class="btn-outline" onclick="resetFilters()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+          Reset
+        </button>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button class="btn-success" onclick="exportCSV()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+          <button class="btn-outline" onclick="showImportUI()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Import Excel
+          </button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table id="companies-table">
+            <thead>
+              <tr>
+                <th onclick="sortTable('company')">Company</th>
+                <th onclick="sortTable('city')">City</th>
+                <th onclick="sortTable('industry')">Industry</th>
+                <th>Contact</th>
+                <th>Email</th>
+                <th onclick="sortTable('status')">Status</th>
+                <th>Email Sent</th>
+                <th>Reply</th>
+                <th>Interested</th>
+                <th>Data Sent</th>
+                <th>Msg Sent</th>
+                <th>Follow-up</th>
+                <th>Assigned To</th>
+                <th onclick="sortTable('lastContacted')">Last Contact</th>
+                <th onclick="sortTable('nextFollowup')">Next Follow-up</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="companies-tbody"></tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <span id="table-count">0 records</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn-outline" style="padding:4px 10px;font-size:12px" onclick="prevPage()">← Prev</button>
+            <span id="page-info" style="font-size:12px;padding:4px 6px;color:var(--text)"></span>
+            <button class="btn-outline" style="padding:4px 10px;font-size:12px" onclick="nextPage()">Next →</button>
+          </div>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><span class="badge badge-not">Not Contacted</span></div>
+          <div class="legend-item"><span class="badge badge-contacted">Contacted</span></div>
+          <div class="legend-item"><span class="badge badge-email">Email Sent</span></div>
+          <div class="legend-item"><span class="badge badge-replied">Replied</span></div>
+          <div class="legend-item"><span class="badge badge-interested">Interested</span></div>
+          <div class="legend-item"><span class="badge badge-data">Data Sent</span></div>
+          <div class="legend-item"><span class="badge badge-msg">Msg Sent</span></div>
+          <div class="legend-item"><span class="badge badge-followup">Follow-up</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Follow-ups Page -->
+  <div class="page" id="page-followups">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-title">Follow-ups</div>
+        <div class="page-desc">Scheduled follow-up dates sorted by urgency</div>
+      </div>
+      <div id="followup-content"></div>
+    </div>
+  </div>
+
+  <!-- Status Tracker Page -->
+  <div class="page" id="page-tracker">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-title">Status Tracker</div>
+        <div class="page-desc">View companies grouped by outreach stage</div>
+      </div>
+      <div id="tracker-content"></div>
+    </div>
+  </div>
+
+  <!-- Reports Page -->
+  <div class="page" id="page-reports">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-title">Reports</div>
+        <div class="page-desc">Summary analytics and outreach metrics</div>
+      </div>
+      <div id="reports-content"></div>
+    </div>
+  </div>
+
+  <!-- Settings Page -->
+  <div class="page" id="page-settings">
+    <div class="page-content">
+      <div class="page-header">
+        <div class="page-title">Settings</div>
+        <div class="page-desc">Configure COT preferences and team settings</div>
+      </div>
+      <div class="section-card" style="padding:24px">
+        <div class="settings-section">
+          <div class="settings-title">Appearance</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Dark Mode</div>
+              <div class="settings-desc">Switch between light and dark interface</div>
+            </div>
+            <div class="toggle-switch" id="dark-toggle" onclick="toggleTheme()">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Compact Table View</div>
+              <div class="settings-desc">Reduce row height in the companies table</div>
+            </div>
+            <div class="toggle-switch on" onclick="this.classList.toggle('on')">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-title">Notifications</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Follow-up Reminders</div>
+              <div class="settings-desc">Get notified when follow-up dates are due</div>
+            </div>
+            <div class="toggle-switch on" onclick="this.classList.toggle('on')">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">New Company Alerts</div>
+              <div class="settings-desc">Alert when a new company is added to the system</div>
+            </div>
+            <div class="toggle-switch" onclick="this.classList.toggle('on')">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-title">Data Management</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Export all data to CSV</div>
+              <div class="settings-desc">Download full company database</div>
+            </div>
+            <button class="btn-outline" onclick="exportCSV()">Export CSV</button>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Import from Excel</div>
+              <div class="settings-desc">Upload an .xlsx or .csv file</div>
+            </div>
+            <button class="btn-outline" onclick="showImportUI()">Import File</button>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Reset Demo Data</div>
+              <div class="settings-desc">Restore original sample dataset</div>
+            </div>
+            <button class="btn-outline" style="color:var(--danger);border-color:var(--danger)" onclick="resetData()">Reset</button>
+          </div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-title">Team Members</div>
+          <div class="settings-row">
+            <div><div class="settings-label">James Dawson</div><div class="settings-desc">Sales Manager · Admin</div></div>
+            <span class="badge badge-interested">Admin</span>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Sarah Kim</div><div class="settings-desc">Senior Sales Rep</div></div>
+            <span class="badge badge-contacted">Member</span>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Ali Raza</div><div class="settings-desc">Sales Rep</div></div>
+            <span class="badge badge-contacted">Member</span>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Nina Patel</div><div class="settings-desc">Business Development</div></div>
+            <span class="badge badge-contacted">Member</span>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Tom Brooks</div><div class="settings-desc">Account Executive</div></div>
+            <span class="badge badge-contacted">Member</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main-wrap -->
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-title">Add Company</div>
+        <div class="modal-subtitle" id="modal-subtitle">Enter company and outreach details</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('edit-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Company Name *</label>
+          <input class="form-input" id="f-company" type="text" placeholder="Acme Corp">
+        </div>
+        <div class="form-group">
+          <label class="form-label">City</label>
+          <input class="form-input" id="f-city" type="text" placeholder="New York">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Industry</label>
+          <select class="form-select" id="f-industry">
+            <option>Technology</option>
+            <option>Finance</option>
+            <option>Healthcare</option>
+            <option>Retail</option>
+            <option>Manufacturing</option>
+            <option>Real Estate</option>
+            <option>Logistics</option>
+            <option>Education</option>
+            <option>Media</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contact Person</label>
+          <input class="form-input" id="f-contact" type="text" placeholder="John Smith">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" id="f-email" type="email" placeholder="john@acmecorp.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input class="form-input" id="f-phone" type="text" placeholder="+1 555 000 0000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="f-status">
+            <option>Not Contacted</option>
+            <option>Contacted</option>
+            <option>Email Sent</option>
+            <option>Replied</option>
+            <option>Interested</option>
+            <option>Data Sent</option>
+            <option>Message Sent</option>
+            <option>Follow-up Sent</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Assigned To</label>
+          <select class="form-select" id="f-assigned">
+            <option>James Dawson</option>
+            <option>Sarah Kim</option>
+            <option>Ali Raza</option>
+            <option>Nina Patel</option>
+            <option>Tom Brooks</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Contacted</label>
+          <input class="form-input" id="f-last" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Next Follow-up</label>
+          <input class="form-input" id="f-next" type="date">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Outreach Flags</label>
+          <div class="checkboxes-row">
+            <label class="checkbox-item"><input type="checkbox" id="f-emailsent"> Email Sent</label>
+            <label class="checkbox-item"><input type="checkbox" id="f-reply"> Reply Received</label>
+            <label class="checkbox-item"><input type="checkbox" id="f-interested"> Interested</label>
+            <label class="checkbox-item"><input type="checkbox" id="f-datasent"> Data Sent</label>
+            <label class="checkbox-item"><input type="checkbox" id="f-msgsent"> Message Sent</label>
+            <label class="checkbox-item"><input type="checkbox" id="f-followup"> Follow-up Sent</label>
+          </div>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Notes</label>
+          <textarea class="form-textarea" id="f-notes" placeholder="Any relevant notes about this company or contact…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('edit-modal')">Cancel</button>
+      <button class="btn-primary" onclick="saveRecord()">Save Company</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Modal -->
+<div class="modal-overlay" id="view-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="view-modal-title">Company Details</div>
+        <div class="modal-subtitle" id="view-modal-sub"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('view-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="view-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('view-modal')">Close</button>
+      <button class="btn-primary" id="view-edit-btn">Edit Record</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ===================== CONFIG =====================
+const API = '/api'; // API base URL
+
+// ===================== CONSTANTS =====================
+const TEAM = ['James Dawson','Sarah Kim','Ali Raza','Nina Patel','Tom Brooks'];
+const STATUS_LIST = ['Not Contacted','Contacted','Email Sent','Replied','Interested','Data Sent','Message Sent','Follow-up Sent'];
+const INDUSTRIES = ['Technology','Finance','Healthcare','Retail','Manufacturing','Real Estate','Logistics','Education','Media'];
+
+// ===================== STATE =====================
+let companies = [];
+let filteredCompanies = [];
+let editingId = null;
+let sortKey = '';
+let sortDir = 1;
+let currentPage = 1;
+const PAGE_SIZE = 15;
+let searchDebounce = null;
+
+// ===================== API HELPERS =====================
+async function apiFetch(path, options = {}) {
+  try {
+    const res = await fetch(API + path, {
+      headers: { 'Content-Type': 'application/json' },
+      ...options,
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'API error');
+    return json;
+  } catch (err) {
+    toast(err.message || 'Network error', 'info');
+    throw err;
+  }
+}
+
+async function loadCompanies(filters = {}) {
+  const params = new URLSearchParams();
+  if (filters.search)   params.set('search',   filters.search);
+  if (filters.status)   params.set('status',   filters.status);
+  if (filters.industry) params.set('industry', filters.industry);
+  if (filters.assigned) params.set('assigned', filters.assigned);
+
+  const qs = params.toString() ? '?' + params.toString() : '';
+  const res = await apiFetch('/companies' + qs);
+  companies = res.data || [];
+  filteredCompanies = [...companies];
+}
+
+async function loadActivity() {
+  const res = await apiFetch('/activity?limit=12');
+  return res.data || [];
+}
+
+async function loadStats() {
+  const res = await apiFetch('/companies/stats');
+  return res.data || {};
+}
+
+// ===================== NAVIGATION =====================
+function navTo(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('header-title').textContent = {
+    dashboard: 'Dashboard', companies: 'Companies',
+    followups: 'Follow-ups', tracker: 'Status Tracker',
+    reports: 'Reports', settings: 'Settings'
+  }[page] || page;
+  closeSidebar();
+  refreshPage(page);
+}
+
+async function refreshPage(page) {
+  if (page === 'dashboard')  { await loadCompanies(); renderDashboard(); }
+  if (page === 'companies')  { await loadCompanies(getFilters()); renderTable(); }
+  if (page === 'followups')  { await loadCompanies(); renderFollowups(); }
+  if (page === 'tracker')    { await loadCompanies(); renderTracker(); }
+  if (page === 'reports')    { await loadCompanies(); renderReports(); }
+}
+
+function getFilters() {
+  return {
+    search:   document.getElementById('global-search').value.trim(),
+    status:   document.getElementById('filter-status')?.value || '',
+    industry: document.getElementById('filter-industry')?.value || '',
+    assigned: document.getElementById('filter-assigned')?.value || '',
+  };
+}
+
+// ===================== DASHBOARD =====================
+async function renderDashboard() {
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+  const stats = await loadStats();
+  const activity = await loadActivity();
+
+  // Stats grid
+  const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card blue"><div class="stat-label">Total Pipeline</div><div class="stat-value">${stats.total}</div><div class="stat-sub">Companies tracked</div></div>
+    <div class="stat-card"><div class="stat-label">Contacted</div><div class="stat-value">${stats.contacted}</div><div class="stat-sub">${pct(stats.contacted, stats.total)}% of pipeline</div></div>
+    <div class="stat-card"><div class="stat-label">Email Sent</div><div class="stat-value">${stats.emailSent}</div><div class="stat-sub">${pct(stats.emailSent, stats.total)}% reached</div></div>
+    <div class="stat-card green"><div class="stat-label">Replied</div><div class="stat-value">${stats.replied}</div><div class="stat-sub">${pct(stats.replied, stats.emailSent)}% reply rate</div></div>
+    <div class="stat-card purple"><div class="stat-label">Interested</div><div class="stat-value">${stats.interested}</div><div class="stat-sub">${pct(stats.interested, stats.replied)}% of replies</div></div>
+    <div class="stat-card orange"><div class="stat-label">Data Sent</div><div class="stat-value">${stats.dataSent}</div><div class="stat-sub">Proposals out</div></div>
+    <div class="stat-card"><div class="stat-label">Follow-up Sent</div><div class="stat-value">${stats.followupSent}</div><div class="stat-sub">Actioned</div></div>
+    <div class="stat-card red"><div class="stat-label">No Reply</div><div class="stat-value">${stats.emailSent - stats.replied}</div><div class="stat-sub">Awaiting response</div></div>
+  `;
+
+  // Insights
+  const todayStr = new Date().toISOString().split('T')[0];
+  const overdueCount = companies.filter(c => c.nextFollowup && c.nextFollowup < todayStr).length;
+  const todayCount   = companies.filter(c => c.nextFollowup === todayStr).length;
+  document.getElementById('insights-grid').innerHTML = `
+    <div class="insight-card"><div class="insight-icon" style="background:var(--primary-light)">📈</div><div class="insight-content"><div class="insight-value">${pct(stats.replied, stats.emailSent)}%</div><div class="insight-label">Reply Rate</div></div></div>
+    <div class="insight-card"><div class="insight-icon" style="background:var(--success-bg)">✅</div><div class="insight-content"><div class="insight-value">${pct(stats.interested, stats.total)}%</div><div class="insight-label">Interest Rate</div></div></div>
+    <div class="insight-card"><div class="insight-icon" style="background:var(--danger-bg)">⚠️</div><div class="insight-content"><div class="insight-value">${overdueCount}</div><div class="insight-label">Overdue Follow-ups</div></div></div>
+    <div class="insight-card"><div class="insight-icon" style="background:var(--warning-bg)">📅</div><div class="insight-content"><div class="insight-value">${todayCount}</div><div class="insight-label">Due Today</div></div></div>
+    <div class="insight-card"><div class="insight-icon" style="background:var(--purple-bg)">🏭</div><div class="insight-content"><div class="insight-value">${Object.keys(stats.byIndustry || {}).length}</div><div class="insight-label">Industries</div></div></div>
+    <div class="insight-card"><div class="insight-icon" style="background:var(--primary-light)">👥</div><div class="insight-content"><div class="insight-value">${TEAM.length}</div><div class="insight-label">Team Members</div></div></div>
+  `;
+
+  // Analytics bars
+  const stages = [
+    ['Email Sent',    stats.emailSent,   'var(--primary)'],
+    ['Replied',       stats.replied,     'var(--success)'],
+    ['Interested',    stats.interested,  'var(--purple)'],
+    ['Data Sent',     stats.dataSent,    'var(--warning)'],
+    ['Follow-up',     stats.followupSent,'#c2410c'],
+  ];
+  document.getElementById('analytics-bars').innerHTML = stages.map(([label, val, color]) => `
+    <div class="progress-item">
+      <div class="progress-row"><span class="progress-label">${label}</span><span class="progress-pct">${pct(val, stats.total)}%</span></div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct(val, stats.total)}%;background:${color}"></div></div>
+    </div>`).join('');
+
+  // Activity log
+  const colorMap = { 'Added to pipeline': 'var(--success)', 'Record updated': 'var(--primary)', 'Record deleted': 'var(--danger)' };
+  document.getElementById('activity-list').innerHTML = activity.length
+    ? activity.map(a => `
+        <div class="activity-item">
+          <div class="activity-dot" style="background:${colorMap[a.action] || 'var(--primary)'}"></div>
+          <div class="activity-content">
+            <div class="activity-text"><strong>${a.company}</strong> — ${a.action}</div>
+            <div class="activity-time">${formatTime(a.createdAt)}</div>
+          </div>
+        </div>`).join('')
+    : '<div style="padding:20px;text-align:center;color:var(--text-muted)">No recent activity</div>';
+
+  // Industry bars
+  const byInd = stats.byIndustry || {};
+  const maxI = Math.max(...Object.values(byInd), 1);
+  document.getElementById('industry-bars').innerHTML = Object.entries(byInd)
+    .sort((a,b) => b[1]-a[1])
+    .map(([ind, n]) => `
+      <div class="bar-item">
+        <div class="bar-label-row"><span>${ind}</span><span class="bar-count">${n}</span></div>
+        <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(n/maxI*100)}%;background:var(--primary)"></div></div>
+      </div>`).join('');
+
+  // Badges
+  const followupCount = companies.filter(c => c.nextFollowup).length;
+  document.getElementById('total-badge').textContent = stats.total;
+  document.getElementById('followup-badge').textContent = followupCount;
+}
+
+function formatTime(dateStr) {
+  if (!dateStr) return 'just now';
+  const d = new Date(dateStr);
+  const diff = (Date.now() - d.getTime()) / 1000;
+  if (diff < 60)   return 'just now';
+  if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  return d.toLocaleDateString();
+}
+
+// ===================== TABLE =====================
+function renderTable() {
+
+   console.log("renderTable running");
+   console.log(companies);
+
+} 
+  let data = [...filteredCompanies];
+
+  // Sort
+  if (sortKey) {
+    data.sort((a, b) => {
+      const av = (a[sortKey] || '').toString().toLowerCase();
+      const bv = (b[sortKey] || '').toString().toLowerCase();
+      return av < bv ? -sortDir : av > bv ? sortDir : 0;
+    });
+  }
+
+  // Pagination
+  const total = data.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = 1;
+  const paged = data.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  document.getElementById('table-count').textContent = `${total} record${total !== 1 ? 's' : ''}`;
+  document.getElementById('page-info').textContent = `Page ${currentPage} of ${totalPages}`;
+
+  document.getElementById('companies-tbody').innerHTML = paged.length
+    ? paged.map(c => `
+        <tr>
+          <td><strong style="color:var(--text)">${esc(c.company)}</strong></td>
+          <td>${esc(c.city)}</td>
+          <td><span style="font-size:12px;color:var(--text-muted)">${esc(c.industry)}</span></td>
+          <td>${esc(c.contact)}</td>
+          <td><a href="mailto:${esc(c.email)}" style="color:var(--primary);font-family:'DM Mono',monospace;font-size:12px">${esc(c.email)}</a></td>
+          <td>${statusBadge(c.status)}</td>
+          <td>${boolChip(c.emailSent)}</td>
+          <td>${boolChip(c.reply)}</td>
+          <td>${boolChip(c.interested)}</td>
+          <td>${boolChip(c.dataSent)}</td>
+          <td>${boolChip(c.msgSent)}</td>
+          <td>${boolChip(c.followup)}</td>
+          <td><span style="font-size:12.5px">${esc(c.assigned)}</span></td>
+          <td><span style="font-family:'DM Mono',monospace;font-size:12px">${c.lastContacted || '—'}</span></td>
+          <td><span style="font-family:'DM Mono',monospace;font-size:12px;${isOverdue(c.nextFollowup)?'color:var(--danger);font-weight:600':''}">${c.nextFollowup || '—'}</span></td>
+          <td>
+            <div style="display:flex;gap:4px">
+              <button class="action-btn" onclick="viewRecord(${c.id})">View</button>
+              <button class="action-btn" onclick="editRecord(${c.id})">Edit</button>
+              <button class="action-btn" style="color:var(--danger)" onclick="deleteRecord(${c.id})">Del</button>
+            </div>
+          </td>
+        </tr>`).join('')
+    : `<tr><td colspan="16"><div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">No companies found.</div></div></td></tr>`; 
+ 
+
+function isOverdue(date) {
+  if (!date) return false;
+  return date < new Date().toISOString().split('T')[0];
+}
+
+function sortTable(key) {
+  if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = 1; }
+  renderTable();
+}
+
+function nextPage() { currentPage++; renderTable(); }
+function prevPage() { if (currentPage > 1) { currentPage--; renderTable(); } }
+
+// ===================== FILTERS / SEARCH =====================
+async function applyFilters() {
+  const filters = getFilters();
+  await loadCompanies(filters);
+  currentPage = 1;
+  renderTable();
+}
+
+function resetFilters() {
+  document.getElementById('filter-status').value = '';
+  document.getElementById('filter-industry').value = '';
+  document.getElementById('filter-assigned').value = '';
+  document.getElementById('global-search').value = '';
+  applyFilters();
+}
+
+function handleSearch(val) {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => applyFilters(), 300);
+}
+
+// ===================== CRUD =====================
+function openAddModal() {
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'Add Company';
+  document.getElementById('modal-subtitle').textContent = 'Enter company and outreach details';
+  clearForm();
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function clearForm() {
+  document.getElementById('f-company').value = '';
+  document.getElementById('f-city').value = '';
+  document.getElementById('f-industry').value = 'Technology';
+  document.getElementById('f-contact').value = '';
+  document.getElementById('f-email').value = '';
+  document.getElementById('f-phone').value = '';
+  document.getElementById('f-status').value = 'Not Contacted';
+  document.getElementById('f-assigned').value = 'James Dawson';
+  document.getElementById('f-last').value = '';
+  document.getElementById('f-next').value = '';
+  document.getElementById('f-emailsent').checked = false;
+  document.getElementById('f-reply').checked = false;
+  document.getElementById('f-interested').checked = false;
+  document.getElementById('f-datasent').checked = false;
+  document.getElementById('f-msgsent').checked = false;
+  document.getElementById('f-followup').checked = false;
+  document.getElementById('f-notes').value = '';
+}
+
+function editRecord(id) {
+  const c = companies.find(x => x.id === id);
+  if (!c) return;
+  editingId = id;
+  document.getElementById('modal-title').textContent = 'Edit Company';
+  document.getElementById('modal-subtitle').textContent = c.company;
+  document.getElementById('f-company').value = c.company;
+  document.getElementById('f-city').value = c.city;
+  document.getElementById('f-industry').value = c.industry;
+  document.getElementById('f-contact').value = c.contact;
+  document.getElementById('f-email').value = c.email;
+  document.getElementById('f-phone').value = c.phone;
+  document.getElementById('f-status').value = c.status;
+  document.getElementById('f-assigned').value = c.assigned;
+  document.getElementById('f-last').value = c.lastContacted || '';
+  document.getElementById('f-next').value = c.nextFollowup || '';
+  document.getElementById('f-emailsent').checked = c.emailSent;
+  document.getElementById('f-reply').checked = c.reply;
+  document.getElementById('f-interested').checked = c.interested;
+  document.getElementById('f-datasent').checked = c.dataSent;
+  document.getElementById('f-msgsent').checked = c.msgSent;
+  document.getElementById('f-followup').checked = c.followup;
+  document.getElementById('f-notes').value = c.notes || '';
+  document.getElementById('edit-modal').classList.add('open');
+  closeModal('view-modal');
+}
+
+async function saveRecord() {
+  const company = document.getElementById('f-company').value.trim();
+  if (!company) { toast('Company name is required', 'info'); return; }
+
+  const payload = {
+    company,
+    city:          document.getElementById('f-city').value.trim(),
+    industry:      document.getElementById('f-industry').value,
+    contact:       document.getElementById('f-contact').value.trim(),
+    email:         document.getElementById('f-email').value.trim(),
+    phone:         document.getElementById('f-phone').value.trim(),
+    status:        document.getElementById('f-status').value,
+    assigned:      document.getElementById('f-assigned').value,
+    lastContacted: document.getElementById('f-last').value,
+    nextFollowup:  document.getElementById('f-next').value,
+    emailSent:     document.getElementById('f-emailsent').checked,
+    reply:         document.getElementById('f-reply').checked,
+    interested:    document.getElementById('f-interested').checked,
+    dataSent:      document.getElementById('f-datasent').checked,
+    msgSent:       document.getElementById('f-msgsent').checked,
+    followup:      document.getElementById('f-followup').checked,
+    notes:         document.getElementById('f-notes').value.trim(),
+  };
+
+  try {
+    if (editingId) {
+      await apiFetch(`/companies/${editingId}`, { method: 'PUT', body: JSON.stringify(payload) });
+      toast(`${company} updated`, 'success');
+    } else {
+      await apiFetch('/companies', { method: 'POST', body: JSON.stringify(payload) });
+      toast(`${company} added`, 'success');
+    }
+    closeModal('edit-modal');
+    await loadCompanies(getFilters());
+    renderTable();
+    renderDashboard();
+  } catch (e) { /* toast already shown */ }
+}
+
+async function deleteRecord(id) {
+  const c = companies.find(x => x.id === id);
+  if (!c) return;
+  if (!confirm(`Delete "${c.company}"? This cannot be undone.`)) return;
+  try {
+    await apiFetch(`/companies/${id}`, { method: 'DELETE' });
+    toast(`${c.company} deleted`, 'success');
+    await loadCompanies(getFilters());
+    renderTable();
+    renderDashboard();
+  } catch (e) {}
+}
+
+function viewRecord(id) {
+  const c = companies.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('view-modal-title').textContent = c.company;
+  document.getElementById('view-modal-sub').textContent = `${c.industry} · ${c.city}`;
+  document.getElementById('view-edit-btn').onclick = () => editRecord(id);
+  document.getElementById('view-modal-body').innerHTML = `
+    <div class="view-grid">
+      <div class="view-item"><div class="view-label">Contact Person</div><div class="view-value">${esc(c.contact)||'—'}</div></div>
+      <div class="view-item"><div class="view-label">Email</div><div class="view-value" style="font-family:'DM Mono',monospace;font-size:12.5px">${esc(c.email)||'—'}</div></div>
+      <div class="view-item"><div class="view-label">Phone</div><div class="view-value" style="font-family:'DM Mono',monospace;font-size:12.5px">${esc(c.phone)||'—'}</div></div>
+      <div class="view-item"><div class="view-label">Assigned To</div><div class="view-value">${esc(c.assigned)}</div></div>
+      <div class="view-item"><div class="view-label">Status</div><div class="view-value">${statusBadge(c.status)}</div></div>
+      <div class="view-item"><div class="view-label">Industry</div><div class="view-value">${esc(c.industry)}</div></div>
+      <div class="view-item"><div class="view-label">Last Contacted</div><div class="view-value">${c.lastContacted||'—'}</div></div>
+      <div class="view-item"><div class="view-label">Next Follow-up</div><div class="view-value" style="${isOverdue(c.nextFollowup)?'color:var(--danger);font-weight:600':''}">${c.nextFollowup||'—'}</div></div>
+      <div class="view-item"><div class="view-label">Email Sent</div><div class="view-value">${boolChip(c.emailSent)}</div></div>
+      <div class="view-item"><div class="view-label">Reply Received</div><div class="view-value">${boolChip(c.reply)}</div></div>
+      <div class="view-item"><div class="view-label">Interested</div><div class="view-value">${boolChip(c.interested)}</div></div>
+      <div class="view-item"><div class="view-label">Data Sent</div><div class="view-value">${boolChip(c.dataSent)}</div></div>
+      <div class="view-item"><div class="view-label">Message Sent</div><div class="view-value">${boolChip(c.msgSent)}</div></div>
+      <div class="view-item"><div class="view-label">Follow-up Sent</div><div class="view-value">${boolChip(c.followup)}</div></div>
+      <div class="view-item view-notes"><div class="view-label">Notes</div><div class="view-value" style="line-height:1.6;white-space:pre-wrap">${esc(c.notes)||'No notes added.'}</div></div>
+    </div>`;
+  document.getElementById('view-modal').classList.add('open');
+}
+
+// ===================== MODAL HELPERS =====================
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
+});
+
+// ===================== FOLLOWUPS =====================
+function renderFollowups() {
+  const todayStr = new Date().toISOString().split('T')[0];
+  const sorted = companies.filter(c => c.nextFollowup).sort((a,b) => a.nextFollowup.localeCompare(b.nextFollowup));
+
+  if (!sorted.length) {
+    document.getElementById('followup-content').innerHTML = '<div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-text">No follow-ups scheduled.</div></div>';
+    return;
+  }
+
+  const overdue  = sorted.filter(c => c.nextFollowup < todayStr);
+  const dueToday = sorted.filter(c => c.nextFollowup === todayStr);
+  const upcoming = sorted.filter(c => c.nextFollowup > todayStr);
+
+  let html = '';
+  if (overdue.length)  html += `<h3 style="font-size:13px;font-weight:600;color:var(--danger);margin-bottom:10px;margin-top:4px">⚠ Overdue (${overdue.length})</h3><div class="followup-list">${overdue.map(c => followupCard(c,'overdue')).join('')}</div>`;
+  if (dueToday.length) html += `<h3 style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:10px;margin-top:20px">Today (${dueToday.length})</h3><div class="followup-list">${dueToday.map(c => followupCard(c,'today')).join('')}</div>`;
+  if (upcoming.length) html += `<h3 style="font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:10px;margin-top:20px">Upcoming (${upcoming.length})</h3><div class="followup-list">${upcoming.map(c => followupCard(c,'')).join('')}</div>`;
+  document.getElementById('followup-content').innerHTML = html;
+}
+
+function followupCard(c, cls) {
+  const d = new Date(c.nextFollowup + 'T00:00:00');
+  return `<div class="followup-card ${cls}">
+    <div class="followup-date"><div class="fdate-day">${d.getDate()}</div><div class="fdate-month">${d.toLocaleString('en',{month:'short'})}</div></div>
+    <div class="followup-info"><div class="followup-company">${esc(c.company)}</div><div class="followup-meta">${esc(c.contact)} · ${esc(c.industry)} · Assigned: ${esc(c.assigned)}</div></div>
+    <div class="followup-status">${statusBadge(c.status)}<div style="margin-top:6px"><button class="action-btn" onclick="editRecord(${c.id});navTo('companies',document.querySelector('[data-page=companies]'))">Edit</button></div></div>
+  </div>`;
+}
+
+// ===================== TRACKER =====================
+function renderTracker() {
+  const sections = STATUS_LIST.map(s => ({
+    label: s,
+    items: companies.filter(c => c.status === s)
+  })).filter(s => s.items.length);
+
+  document.getElementById('tracker-content').innerHTML = sections.map(s => `
+    <div class="tracker-section">
+      <div class="tracker-title">${statusBadge(s.label)} <span style="font-weight:400;color:var(--text-muted);font-size:13px">&nbsp;${s.items.length} ${s.items.length===1?'company':'companies'}</span></div>
+      <div class="tracker-grid">
+        ${s.items.map(c => `
+          <div class="tracker-mini-card">
+            <div class="tracker-mini-company">${esc(c.company)}</div>
+            <div class="tracker-mini-contact">${esc(c.contact)} · ${esc(c.city)}</div>
+            <div class="tracker-mini-chips">
+              ${c.emailSent?'<span class="bool-chip bool-yes" style="padding:2px 7px;font-size:11px;width:auto">Email ✓</span>':''}
+              ${c.reply?'<span class="bool-chip bool-yes" style="padding:2px 7px;font-size:11px;width:auto;background:#ecfdf5;color:#10b981">Reply ✓</span>':''}
+              ${c.interested?'<span class="bool-chip bool-yes" style="padding:2px 7px;font-size:11px;width:auto;background:#f5f3ff;color:#8b5cf6">Interest ✓</span>':''}
+              ${c.followup?'<span class="bool-chip bool-yes" style="padding:2px 7px;font-size:11px;width:auto;background:#fff7ed;color:#c2410c">F/U ✓</span>':''}
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+// ===================== REPORTS =====================
+async function renderReports() {
+  const stats = await loadStats();
+  const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+  const maxS = Math.max(...Object.values(stats.byStatus || {}).map(Number), 1);
+  const maxA = Math.max(...Object.values(stats.byAssigned || {}).map(Number), 1);
+  const maxI = Math.max(...Object.values(stats.byIndustry || {}).map(Number), 1);
+
+  document.getElementById('reports-content').innerHTML = `
+    <div class="report-grid">
+      <div class="section-card">
+        <div class="section-header"><div class="section-title">Companies by Status</div></div>
+        <div class="chart-bar-wrap">
+          ${Object.entries(stats.byStatus||{}).filter(([,v])=>v>0).map(([k,v]) => `
+            <div class="bar-item">
+              <div class="bar-label-row"><span>${k}</span><span class="bar-count">${v}</span></div>
+              <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(v/maxS*100)}%;background:var(--primary)"></div></div>
+            </div>`).join('')}
+        </div>
+      </div>
+      <div class="section-card">
+        <div class="section-header"><div class="section-title">By Team Member</div></div>
+        <div class="chart-bar-wrap">
+          ${Object.entries(stats.byAssigned||{}).filter(([,v])=>v>0).map(([k,v]) => `
+            <div class="bar-item">
+              <div class="bar-label-row"><span>${k}</span><span class="bar-count">${v} companies</span></div>
+              <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(v/maxA*100)}%;background:var(--success)"></div></div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="section-card" style="margin-bottom:20px">
+      <div class="section-header"><div class="section-title">By Industry</div></div>
+      <div class="chart-bar-wrap">
+        ${Object.entries(stats.byIndustry||{}).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).map(([k,v]) => `
+          <div class="bar-item">
+            <div class="bar-label-row"><span>${k}</span><span class="bar-count">${v}</span></div>
+            <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(v/maxI*100)}%;background:var(--purple)"></div></div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="section-card">
+      <div class="section-header"><div class="section-title">Conversion Funnel</div></div>
+      <div class="chart-bar-wrap">
+        ${[
+          ['Total Pipeline',  stats.total,       '#94a3b8'],
+          ['Contacted',       stats.contacted,   'var(--primary)'],
+          ['Email Sent',      stats.emailSent,   '#0369a1'],
+          ['Replied',         stats.replied,     'var(--success)'],
+          ['Interested',      stats.interested,  'var(--purple)'],
+          ['Data Sent',       stats.dataSent,    'var(--warning)'],
+          ['Follow-up Sent',  stats.followupSent,'#c2410c'],
+        ].map(([l,v,c]) => `
+          <div class="bar-item">
+            <div class="bar-label-row"><span>${l}</span><span class="bar-count">${v} &nbsp;(${pct(v, stats.total)}%)</span></div>
+            <div class="bar-bg"><div class="bar-fill" style="width:${pct(v, stats.total)}%;background:${c}"></div></div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+// ===================== EXPORT =====================
+function exportCSV() {
+  const headers = ['Company','City','Industry','Contact','Email','Phone','Status','Email Sent','Reply','Interested','Data Sent','Msg Sent','Follow-up','Assigned','Last Contacted','Next Follow-up','Notes'];
+  const rows = companies.map(c => [
+    c.company,c.city,c.industry,c.contact,c.email,c.phone,c.status,
+    c.emailSent?'Yes':'No',c.reply?'Yes':'No',c.interested?'Yes':'No',
+    c.dataSent?'Yes':'No',c.msgSent?'Yes':'No',c.followup?'Yes':'No',
+    c.assigned,c.lastContacted,c.nextFollowup,c.notes||''
+  ]);
+  const csv = [headers,...rows].map(r => r.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'COT_Export_' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click();
+  toast('CSV exported successfully', 'success');
+}
+
+function showImportUI() {
+  toast('Excel import coming in v2.0 — use CSV export/import for now', 'info');
+}
+
+// ===================== UTILITY =====================
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function statusBadge(s) {
+  const map = {
+    'Not Contacted': 'badge-not',
+    'Contacted':     'badge-contacted',
+    'Email Sent':    'badge-email',
+    'Replied':       'badge-replied',
+    'Interested':    'badge-interested',
+    'Data Sent':     'badge-data',
+    'Message Sent':  'badge-msg',
+    'Follow-up Sent':'badge-followup',
+  };
+  return `<span class="badge ${map[s]||''}">${s}</span>`;
+}
+
+function boolChip(val) {
+  return val
+    ? '<span class="bool-chip bool-yes">Yes</span>'
+    : '<span class="bool-chip bool-no">No</span>';
+}
+
+// ===================== THEME =====================
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('sun-icon').style.display  = isDark ? 'block' : 'none';
+  document.getElementById('moon-icon').style.display = isDark ? 'none'  : 'block';
+  const dt = document.getElementById('dark-toggle');
+  if (dt) dt.classList.toggle('on', !isDark);
+  localStorage.setItem('cot-theme', isDark ? 'light' : 'dark');
+}
+
+// ===================== SIDEBAR =====================
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+
+// ===================== TOAST =====================
+function toast(msg, type = 'info') {
+  const tc = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.innerHTML = `<div class="toast-icon">${type==='success'?'✓':'i'}</div><span>${msg}</span>`;
+  tc.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+// ===================== INIT =====================
+async function init() {
+  // Restore theme
+  const savedTheme = localStorage.getItem('cot-theme');
+  if (savedTheme === 'dark') toggleTheme();
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+      closeSidebar();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      document.getElementById('global-search').focus();
+    }
+  });
+
+  await loadCompanies();
+  renderDashboard();
+}
+
+init();
+</script>
+</body>
+</html>
