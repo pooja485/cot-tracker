@@ -33,13 +33,14 @@ async function initDB() {
       );
     `);
     await client.query(`
-  CREATE TABLE IF NOT EXISTS session (
-    sid VARCHAR NOT NULL COLLATE "default",
-    sess JSON NOT NULL,
-    expire TIMESTAMP(6) NOT NULL,
-    CONSTRAINT session_pkey PRIMARY KEY (sid)
-  );
-`);
+      CREATE TABLE IF NOT EXISTS activity (
+        id SERIAL PRIMARY KEY,
+        company_id TEXT,
+        company_name TEXT,
+        action TEXT,
+        details TEXT,
+        timestamp TIMESTAMP DEFAULT NOW()
+      );
     `);
     console.log('✅ PostgreSQL database ready');
   } finally {
