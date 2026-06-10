@@ -4,8 +4,6 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
 const session = require('express-session');
-const pgSession = require('connect-pg-simple')(session);
-const { pool } = require('./db');
 const { initDB } = require('./db');
 
 const app = express();
@@ -18,10 +16,6 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(session({
-  store: new pgSession({
-    pool: pool,
-    tableName: 'session'
-  }),
   secret: process.env.SESSION_SECRET || 'cot-secret-key-2026',
   resave: false,
   saveUninitialized: false,
