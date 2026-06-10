@@ -1531,7 +1531,7 @@ async function loadActivity() {
 
 async function loadStats() {
   const res = await apiFetch('/companies/stats');
-  return res.data || {};
+  return res || {};
 }
 
 // ===================== NAVIGATION =====================

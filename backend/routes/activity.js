@@ -1,16 +1,18 @@
-// backend/routes/activity.js
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
+const { pool } = require('../db');
 
-// GET /api/activity
-router.get('/', (req, res) => {
+// GET activity log
+router.get('/', async (req, res) => {
   try {
-    const limit = Math.min(Number(req.query.limit) || 15, 50);
-    const log = db.getActivityLog(limit);
-    res.json({ success: true, data: log });
+    const limit = req.query.limit || 20;
+    const result = await pool.query(
+      'SELECT * FROM activity ORDER BY timestamp DESC LIMIT $1',
+      [limit]
+    );
+    res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 

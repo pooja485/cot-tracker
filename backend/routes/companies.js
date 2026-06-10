@@ -1,76 +1,127 @@
-// backend/routes/companies.js
 const express = require('express');
 const router = express.Router();
-const db = require('../db');
+const { pool } = require('../db');
 
-// ── GET /api/companies — list with optional filters
-router.get('/', (req, res) => {
+function generateId() {
+  return 'co_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+}
+
+router.get('/stats', async (req, res) => {
   try {
-    const { search, status, industry, assigned } = req.query;
-    const companies = db.getCompanies({ search, status, industry, assigned });
-    res.json({ success: true, data: companies, total: companies.length });
+    const total = await pool.query('SELECT COUNT(*) FROM companies');
+    const contacted = await pool.query(`SELECT COUNT(*) FROM companies WHERE status != 'Not Contacted'`);
+    const emailSent = await pool.query(`SELECT COUNT(*) FROM companies WHERE status IN ('Email Sent','Replied','Interested','Data Sent','Follow-up Sent')`);
+    const replied = await pool.query(`SELECT COUNT(*) FROM companies WHERE status IN ('Replied','Interested','Data Sent','Follow-up Sent')`);
+    const interested = await pool.query(`SELECT COUNT(*) FROM companies WHERE status IN ('Interested','Data Sent','Follow-up Sent')`);
+    const dataSent = await pool.query(`SELECT COUNT(*) FROM companies WHERE status IN ('Data Sent','Follow-up Sent')`);
+    const followUp = await pool.query(`SELECT COUNT(*) FROM companies WHERE status = 'Follow-up Sent'`);
+    const noReply = await pool.query(`SELECT COUNT(*) FROM companies WHERE status = 'No Reply'`);
+    const byIndustry = await pool.query('SELECT industry, COUNT(*) as count FROM companies GROUP BY industry');
+    const t = parseInt(total.rows[0].count);
+    const c = parseInt(contacted.rows[0].count);
+    res.json({
+      total: t,
+      contacted: c,
+      emailSent: parseInt(emailSent.rows[0].count),
+      replied: parseInt(replied.rows[0].count),
+      interested: parseInt(interested.rows[0].count),
+      dataSent: parseInt(dataSent.rows[0].count),
+      followupSent: parseInt(followUp.rows[0].count),
+      noReply: parseInt(noReply.rows[0].count),
+      contactedPercent: t > 0 ? Math.round((c/t)*100) : 0,
+      industries: byIndustry.rows.length
+    });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
-// ── GET /api/companies/stats — aggregate statistics
-router.get('/stats', (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const stats = db.getStats();
-    res.json({ success: true, data: stats });
+    const { status, priority, industry, search } = req.query;
+    let query = 'SELECT * FROM companies WHERE 1=1';
+    const params = [];
+    if (status) { params.push(status); query += ` AND status = $${params.length}`; }
+    if (priority) { params.push(priority); query += ` AND priority = $${params.length}`; }
+    if (industry) { params.push(industry); query += ` AND industry = $${params.length}`; }
+    if (search) { params.push(`%${search}%`); query += ` AND (name ILIKE $${params.length} OR contact_name ILIKE $${params.length} OR contact_email ILIKE $${params.length})`; }
+    query += ' ORDER BY created_at DESC';
+    const result = await pool.query(query, params);
+    res.json(result.rows);
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
-// ── GET /api/companies/:id — single company
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
-    const company = db.getCompanyById(Number(req.params.id));
-    if (!company) return res.status(404).json({ success: false, error: 'Company not found' });
-    res.json({ success: true, data: company });
+    const result = await pool.query('SELECT * FROM companies WHERE id = $1', [req.params.id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    res.json(result.rows[0]);
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
-// ── POST /api/companies — create new company
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   try {
-    const { company } = req.body;
-    if (!company || !company.trim()) {
-      return res.status(400).json({ success: false, error: 'Company name is required' });
-    }
-    const created = db.createCompany(req.body);
-    res.status(201).json({ success: true, data: created });
+    const id = generateId();
+    const { name, industry, website, contact_name, contact_email, contact_phone,
+      status, priority, notes, last_contacted, follow_up_date, deal_value, tags } = req.body;
+    const result = await pool.query(
+      `INSERT INTO companies (id, name, industry, website, contact_name, contact_email,
+        contact_phone, status, priority, notes, last_contacted, follow_up_date, deal_value, tags)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
+      [id, name, industry, website, contact_name, contact_email,
+        contact_phone, status || 'Not Contacted', priority || 'Medium',
+        notes, last_contacted || null, follow_up_date || null, deal_value || null, tags]
+    );
+    await pool.query(
+      'INSERT INTO activity (company_id, company_name, action, details) VALUES ($1,$2,$3,$4)',
+      [id, name, 'created', `Company "${name}" added to pipeline`]
+    );
+    res.status(201).json(result.rows[0]);
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
-// ── PUT /api/companies/:id — update company
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
-    const id = Number(req.params.id);
-    const existing = db.getCompanyById(id);
-    if (!existing) return res.status(404).json({ success: false, error: 'Company not found' });
-    const updated = db.updateCompany(id, req.body);
-    res.json({ success: true, data: updated });
+    const { name, industry, website, contact_name, contact_email, contact_phone,
+      status, priority, notes, last_contacted, follow_up_date, deal_value, tags } = req.body;
+    const result = await pool.query(
+      `UPDATE companies SET name=$1, industry=$2, website=$3, contact_name=$4,
+        contact_email=$5, contact_phone=$6, status=$7, priority=$8, notes=$9,
+        last_contacted=$10, follow_up_date=$11, deal_value=$12, tags=$13, updated_at=NOW()
+       WHERE id=$14 RETURNING *`,
+      [name, industry, website, contact_name, contact_email, contact_phone,
+        status, priority, notes, last_contacted || null, follow_up_date || null,
+        deal_value || null, tags, req.params.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    await pool.query(
+      'INSERT INTO activity (company_id, company_name, action, details) VALUES ($1,$2,$3,$4)',
+      [req.params.id, name, 'updated', `Company "${name}" was updated`]
+    );
+    res.json(result.rows[0]);
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
-// ── DELETE /api/companies/:id — delete company
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
-    const id = Number(req.params.id);
-    const deleted = db.deleteCompany(id);
-    if (!deleted) return res.status(404).json({ success: false, error: 'Company not found' });
-    res.json({ success: true, message: `${deleted.company} deleted successfully` });
+    const company = await pool.query('SELECT name FROM companies WHERE id = $1', [req.params.id]);
+    if (company.rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    await pool.query('DELETE FROM companies WHERE id = $1', [req.params.id]);
+    await pool.query(
+      'INSERT INTO activity (company_id, company_name, action, details) VALUES ($1,$2,$3,$4)',
+      [req.params.id, company.rows[0].name, 'deleted', `Company "${company.rows[0].name}" removed`]
+    );
+    res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
