@@ -66,8 +66,19 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const id = generateId();
-    const { name, industry, website, contact_name, contact_email, contact_phone,
-      status, priority, notes, last_contacted, follow_up_date, deal_value, tags } = req.body;
+    const name = req.body.name || req.body.companyName || req.body.company_name;
+    const industry = req.body.industry;
+    const website = req.body.website;
+    const contact_name = req.body.contact_name || req.body.contactPerson || req.body.contact_person;
+    const contact_email = req.body.contact_email || req.body.email;
+    const contact_phone = req.body.contact_phone || req.body.phone;
+    const status = req.body.status;
+    const priority = req.body.priority;
+    const notes = req.body.notes;
+    const last_contacted = req.body.last_contacted || req.body.lastContacted;
+    const follow_up_date = req.body.follow_up_date || req.body.nextFollowup || req.body.next_followup;
+    const deal_value = req.body.deal_value;
+    const tags = req.body.tags;
     const result = await pool.query(
       `INSERT INTO companies (id, name, industry, website, contact_name, contact_email,
         contact_phone, status, priority, notes, last_contacted, follow_up_date, deal_value, tags)
