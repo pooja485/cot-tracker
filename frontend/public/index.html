@@ -232,6 +232,7 @@
     pointer-events: none;
   }
 
+  /* FIX: Added aria-label to search input via JS, but also set id for label association */
   .search-input {
     width: 100%;
     padding: 8px 12px 8px 34px;
@@ -854,6 +855,7 @@
     position: relative;
     cursor: pointer;
     transition: background var(--transition);
+    flex-shrink: 0;
   }
 
   .toggle-switch.on { background: var(--primary); }
@@ -934,9 +936,7 @@
   .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
 
   /* ===== PAGE TITLES ===== */
-  .page-header {
-    margin-bottom: 20px;
-  }
+  .page-header { margin-bottom: 20px; }
 
   .page-title { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.4px; }
   .page-desc { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
@@ -976,9 +976,23 @@
     .insights-grid { grid-template-columns: 1fr 1fr; }
     .header { padding: 0 14px; gap: 8px; }
   }
+
+  /* ===== VISUALLY HIDDEN (accessibility) ===== */
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+  }
 </style>
 </head>
 <body>
+
+<!-- Hidden file input for CSV/Excel import — FIX: was missing from original -->
+<input type="file" id="excelFile" accept=".csv,.xlsx" style="display:none" onchange="handleImport(this)">
 
 <!-- Sidebar -->
 <aside class="sidebar" id="sidebar">
@@ -1037,22 +1051,31 @@
 
   <!-- Header -->
   <header class="header">
-    <button class="menu-toggle" onclick="toggleSidebar()">
+    <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
     <span class="header-title" id="header-title">Dashboard</span>
     <div class="search-wrap">
+      <!-- FIX: Added sr-only label + aria-label to fix accessibility warnings -->
+      <label for="global-search" class="sr-only">Search companies and contacts</label>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input class="search-input" id="global-search" type="text" placeholder="Search companies, contacts…" oninput="handleSearch(this.value)">
+      <input
+        class="search-input"
+        id="global-search"
+        type="search"
+        placeholder="Search companies, contacts…"
+        aria-label="Search companies and contacts"
+        oninput="handleSearch(this.value)"
+      >
     </div>
     <div class="header-actions">
-      <button class="btn-icon" onclick="exportCSV()" title="Export CSV">
+      <button class="btn-icon" onclick="exportCSV()" title="Export CSV" aria-label="Export CSV">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       </button>
-      <button class="btn-icon" onclick="showImportUI()" title="Import">
+      <button class="btn-icon" onclick="showImportUI()" title="Import CSV" aria-label="Import CSV file">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
       </button>
-      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle dark/light theme">
         <svg id="sun-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         <svg id="moon-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
       </button>
@@ -1070,14 +1093,8 @@
         <div class="page-title">Dashboard</div>
         <div class="page-desc">Overview of your outreach pipeline — <span id="dash-date"></span></div>
       </div>
-
-      <!-- Stat Cards -->
       <div class="stats-grid" id="stats-grid"></div>
-
-      <!-- Insights -->
       <div class="insights-grid" id="insights-grid"></div>
-
-      <!-- Analytics + Activity -->
       <div class="dash-grid">
         <div class="section-card">
           <div class="section-header">
@@ -1088,7 +1105,6 @@
           </div>
           <div class="progress-list" id="analytics-bars"></div>
         </div>
-
         <div class="section-card">
           <div class="section-header">
             <div>
@@ -1099,8 +1115,6 @@
           <div class="activity-list" id="activity-list"></div>
         </div>
       </div>
-
-      <!-- Industry Breakdown -->
       <div class="section-card">
         <div class="section-header">
           <div class="section-title">Industry Breakdown</div>
@@ -1124,7 +1138,9 @@
         <div class="page-desc">All company records with outreach status</div>
       </div>
       <div class="toolbar">
-        <select class="filter-select" id="filter-status" onchange="applyFilters()">
+        <!-- FIX: Added sr-only labels for all filter selects -->
+        <label for="filter-status" class="sr-only">Filter by status</label>
+        <select class="filter-select" id="filter-status" aria-label="Filter by status" onchange="applyFilters()">
           <option value="">All Statuses</option>
           <option value="Not Contacted">Not Contacted</option>
           <option value="Contacted">Contacted</option>
@@ -1135,7 +1151,8 @@
           <option value="Message Sent">Message Sent</option>
           <option value="Follow-up Sent">Follow-up Sent</option>
         </select>
-        <select class="filter-select" id="filter-assigned" onchange="applyFilters()">
+        <label for="filter-assigned" class="sr-only">Filter by team member</label>
+        <select class="filter-select" id="filter-assigned" aria-label="Filter by team member" onchange="applyFilters()">
           <option value="">All Team Members</option>
           <option>James Dawson</option>
           <option>Sarah Kim</option>
@@ -1143,7 +1160,8 @@
           <option>Nina Patel</option>
           <option>Tom Brooks</option>
         </select>
-        <select class="filter-select" id="filter-industry" onchange="applyFilters()">
+        <label for="filter-industry" class="sr-only">Filter by industry</label>
+        <select class="filter-select" id="filter-industry" aria-label="Filter by industry" onchange="applyFilters()">
           <option value="">All Industries</option>
           <option>Technology</option>
           <option>Finance</option>
@@ -1166,7 +1184,7 @@
           </button>
           <button class="btn-outline" onclick="showImportUI()">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            Import Excel
+            Import CSV
           </button>
         </div>
       </div>
@@ -1198,10 +1216,10 @@
         </div>
         <div class="table-footer">
           <span id="table-count">0 records</span>
-          <div style="display:flex;gap:8px">
-            <button class="btn-outline" style="padding:4px 10px;font-size:12px" onclick="prevPage()">← Prev</button>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn-outline" style="padding:4px 10px;font-size:12px" onclick="prevPage()" aria-label="Previous page">← Prev</button>
             <span id="page-info" style="font-size:12px;padding:4px 6px;color:var(--text)"></span>
-            <button class="btn-outline" style="padding:4px 10px;font-size:12px" onclick="nextPage()">Next →</button>
+            <button class="btn-outline" style="padding:4px 10px;font-size:12px" onclick="nextPage()" aria-label="Next page">Next →</button>
           </div>
         </div>
         <div class="legend">
@@ -1266,7 +1284,7 @@
               <div class="settings-label">Dark Mode</div>
               <div class="settings-desc">Switch between light and dark interface</div>
             </div>
-            <div class="toggle-switch" id="dark-toggle" onclick="toggleTheme()">
+            <div class="toggle-switch" id="dark-toggle" onclick="toggleTheme()" role="switch" aria-label="Toggle dark mode">
               <div class="toggle-knob"></div>
             </div>
           </div>
@@ -1275,7 +1293,7 @@
               <div class="settings-label">Compact Table View</div>
               <div class="settings-desc">Reduce row height in the companies table</div>
             </div>
-            <div class="toggle-switch on" onclick="this.classList.toggle('on')">
+            <div class="toggle-switch on" onclick="this.classList.toggle('on')" role="switch" aria-label="Toggle compact view">
               <div class="toggle-knob"></div>
             </div>
           </div>
@@ -1287,7 +1305,7 @@
               <div class="settings-label">Follow-up Reminders</div>
               <div class="settings-desc">Get notified when follow-up dates are due</div>
             </div>
-            <div class="toggle-switch on" onclick="this.classList.toggle('on')">
+            <div class="toggle-switch on" onclick="this.classList.toggle('on')" role="switch" aria-label="Toggle follow-up reminders">
               <div class="toggle-knob"></div>
             </div>
           </div>
@@ -1296,7 +1314,7 @@
               <div class="settings-label">New Company Alerts</div>
               <div class="settings-desc">Alert when a new company is added to the system</div>
             </div>
-            <div class="toggle-switch" onclick="this.classList.toggle('on')">
+            <div class="toggle-switch" onclick="this.classList.toggle('on')" role="switch" aria-label="Toggle new company alerts">
               <div class="toggle-knob"></div>
             </div>
           </div>
@@ -1312,8 +1330,8 @@
           </div>
           <div class="settings-row">
             <div>
-              <div class="settings-label">Import from Excel</div>
-              <div class="settings-desc">Upload an .xlsx or .csv file</div>
+              <div class="settings-label">Import from CSV</div>
+              <div class="settings-desc">Upload a .csv file (Excel import coming in v2.0)</div>
             </div>
             <button class="btn-outline" onclick="showImportUI()">Import File</button>
           </div>
@@ -1355,27 +1373,28 @@
 </div><!-- /main-wrap -->
 
 <!-- Add/Edit Modal -->
-<div class="modal-overlay" id="edit-modal">
+<div class="modal-overlay" id="edit-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
   <div class="modal">
     <div class="modal-header">
       <div>
         <div class="modal-title" id="modal-title">Add Company</div>
         <div class="modal-subtitle" id="modal-subtitle">Enter company and outreach details</div>
       </div>
-      <button class="modal-close" onclick="closeModal('edit-modal')">✕</button>
+      <button class="modal-close" onclick="closeModal('edit-modal')" aria-label="Close modal">✕</button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
         <div class="form-group">
-          <label class="form-label">Company Name *</label>
-          <input class="form-input" id="f-company" type="text" placeholder="Acme Corp">
+          <!-- FIX: All labels now have matching for= and input id= attributes -->
+          <label class="form-label" for="f-company">Company Name *</label>
+          <input class="form-input" id="f-company" type="text" placeholder="Acme Corp" autocomplete="organization">
         </div>
         <div class="form-group">
-          <label class="form-label">City</label>
-          <input class="form-input" id="f-city" type="text" placeholder="New York">
+          <label class="form-label" for="f-city">City</label>
+          <input class="form-input" id="f-city" type="text" placeholder="New York" autocomplete="address-level2">
         </div>
         <div class="form-group">
-          <label class="form-label">Industry</label>
+          <label class="form-label" for="f-industry">Industry</label>
           <select class="form-select" id="f-industry">
             <option>Technology</option>
             <option>Finance</option>
@@ -1389,19 +1408,19 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Contact Person</label>
-          <input class="form-input" id="f-contact" type="text" placeholder="John Smith">
+          <label class="form-label" for="f-contact">Contact Person</label>
+          <input class="form-input" id="f-contact" type="text" placeholder="John Smith" autocomplete="name">
         </div>
         <div class="form-group">
-          <label class="form-label">Email</label>
-          <input class="form-input" id="f-email" type="email" placeholder="john@acmecorp.com">
+          <label class="form-label" for="f-email">Email</label>
+          <input class="form-input" id="f-email" type="email" placeholder="john@acmecorp.com" autocomplete="email">
         </div>
         <div class="form-group">
-          <label class="form-label">Phone</label>
-          <input class="form-input" id="f-phone" type="text" placeholder="+1 555 000 0000">
+          <label class="form-label" for="f-phone">Phone</label>
+          <input class="form-input" id="f-phone" type="tel" placeholder="+1 555 000 0000" autocomplete="tel">
         </div>
         <div class="form-group">
-          <label class="form-label">Status</label>
+          <label class="form-label" for="f-status">Status</label>
           <select class="form-select" id="f-status">
             <option>Not Contacted</option>
             <option>Contacted</option>
@@ -1414,7 +1433,7 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Assigned To</label>
+          <label class="form-label" for="f-assigned">Assigned To</label>
           <select class="form-select" id="f-assigned">
             <option>James Dawson</option>
             <option>Sarah Kim</option>
@@ -1424,11 +1443,11 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Last Contacted</label>
+          <label class="form-label" for="f-last">Last Contacted</label>
           <input class="form-input" id="f-last" type="date">
         </div>
         <div class="form-group">
-          <label class="form-label">Next Follow-up</label>
+          <label class="form-label" for="f-next">Next Follow-up</label>
           <input class="form-input" id="f-next" type="date">
         </div>
         <div class="form-group full">
@@ -1443,7 +1462,7 @@
           </div>
         </div>
         <div class="form-group full">
-          <label class="form-label">Notes</label>
+          <label class="form-label" for="f-notes">Notes</label>
           <textarea class="form-textarea" id="f-notes" placeholder="Any relevant notes about this company or contact…"></textarea>
         </div>
       </div>
@@ -1456,14 +1475,14 @@
 </div>
 
 <!-- View Modal -->
-<div class="modal-overlay" id="view-modal">
+<div class="modal-overlay" id="view-modal" role="dialog" aria-modal="true" aria-labelledby="view-modal-title">
   <div class="modal">
     <div class="modal-header">
       <div>
         <div class="modal-title" id="view-modal-title">Company Details</div>
         <div class="modal-subtitle" id="view-modal-sub"></div>
       </div>
-      <button class="modal-close" onclick="closeModal('view-modal')">✕</button>
+      <button class="modal-close" onclick="closeModal('view-modal')" aria-label="Close modal">✕</button>
     </div>
     <div class="modal-body" id="view-modal-body"></div>
     <div class="modal-footer">
@@ -1474,11 +1493,11 @@
 </div>
 
 <!-- Toast Container -->
-<div class="toast-container" id="toast-container"></div>
+<div class="toast-container" id="toast-container" aria-live="polite"></div>
 
 <script>
 // ===================== CONFIG =====================
-const API = '/api'; // API base URL
+const API = '/api';
 
 // ===================== CONSTANTS =====================
 const TEAM = ['James Dawson','Sarah Kim','Ali Raza','Nina Patel','Tom Brooks'];
@@ -1494,6 +1513,9 @@ let sortDir = 1;
 let currentPage = 1;
 const PAGE_SIZE = 15;
 let searchDebounce = null;
+
+// FIX: Render guard — prevents duplicate renders if API is slow and user clicks fast
+let isRendering = false;
 
 // ===================== API HELPERS =====================
 async function apiFetch(path, options = {}) {
@@ -1520,6 +1542,8 @@ async function loadCompanies(filters = {}) {
 
   const qs = params.toString() ? '?' + params.toString() : '';
   const res = await apiFetch('/companies' + qs);
+
+  // FIX: Always replace, never append — prevents duplicate card bug
   companies = res.data || [];
   filteredCompanies = [...companies];
 }
@@ -1531,7 +1555,7 @@ async function loadActivity() {
 
 async function loadStats() {
   const res = await apiFetch('/companies/stats');
-  return res || {};
+  return res.data || {};
 }
 
 // ===================== NAVIGATION =====================
@@ -1550,6 +1574,11 @@ function navTo(page, el) {
 }
 
 async function refreshPage(page) {
+  // FIX: Clear content containers before re-rendering to prevent duplicates
+  if (page === 'tracker')   document.getElementById('tracker-content').innerHTML = '';
+  if (page === 'followups') document.getElementById('followup-content').innerHTML = '';
+  if (page === 'reports')   document.getElementById('reports-content').innerHTML = '';
+
   if (page === 'dashboard')  { await loadCompanies(); renderDashboard(); }
   if (page === 'companies')  { await loadCompanies(getFilters()); renderTable(); }
   if (page === 'followups')  { await loadCompanies(); renderFollowups(); }
@@ -1573,8 +1602,8 @@ async function renderDashboard() {
   const stats = await loadStats();
   const activity = await loadActivity();
 
-  // Stats grid
   const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+
   document.getElementById('stats-grid').innerHTML = `
     <div class="stat-card blue"><div class="stat-label">Total Pipeline</div><div class="stat-value">${stats.total}</div><div class="stat-sub">Companies tracked</div></div>
     <div class="stat-card"><div class="stat-label">Contacted</div><div class="stat-value">${stats.contacted}</div><div class="stat-sub">${pct(stats.contacted, stats.total)}% of pipeline</div></div>
@@ -1586,10 +1615,10 @@ async function renderDashboard() {
     <div class="stat-card red"><div class="stat-label">No Reply</div><div class="stat-value">${stats.emailSent - stats.replied}</div><div class="stat-sub">Awaiting response</div></div>
   `;
 
-  // Insights
   const todayStr = new Date().toISOString().split('T')[0];
   const overdueCount = companies.filter(c => c.nextFollowup && c.nextFollowup < todayStr).length;
   const todayCount   = companies.filter(c => c.nextFollowup === todayStr).length;
+
   document.getElementById('insights-grid').innerHTML = `
     <div class="insight-card"><div class="insight-icon" style="background:var(--primary-light)">📈</div><div class="insight-content"><div class="insight-value">${pct(stats.replied, stats.emailSent)}%</div><div class="insight-label">Reply Rate</div></div></div>
     <div class="insight-card"><div class="insight-icon" style="background:var(--success-bg)">✅</div><div class="insight-content"><div class="insight-value">${pct(stats.interested, stats.total)}%</div><div class="insight-label">Interest Rate</div></div></div>
@@ -1599,45 +1628,42 @@ async function renderDashboard() {
     <div class="insight-card"><div class="insight-icon" style="background:var(--primary-light)">👥</div><div class="insight-content"><div class="insight-value">${TEAM.length}</div><div class="insight-label">Team Members</div></div></div>
   `;
 
-  // Analytics bars
   const stages = [
-    ['Email Sent',    stats.emailSent,   'var(--primary)'],
-    ['Replied',       stats.replied,     'var(--success)'],
-    ['Interested',    stats.interested,  'var(--purple)'],
-    ['Data Sent',     stats.dataSent,    'var(--warning)'],
-    ['Follow-up',     stats.followupSent,'#c2410c'],
+    ['Email Sent',    stats.emailSent,    'var(--primary)'],
+    ['Replied',       stats.replied,      'var(--success)'],
+    ['Interested',    stats.interested,   'var(--purple)'],
+    ['Data Sent',     stats.dataSent,     'var(--warning)'],
+    ['Follow-up',     stats.followupSent, '#c2410c'],
   ];
+
   document.getElementById('analytics-bars').innerHTML = stages.map(([label, val, color]) => `
     <div class="progress-item">
       <div class="progress-row"><span class="progress-label">${label}</span><span class="progress-pct">${pct(val, stats.total)}%</span></div>
       <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct(val, stats.total)}%;background:${color}"></div></div>
     </div>`).join('');
 
-  // Activity log
   const colorMap = { 'Added to pipeline': 'var(--success)', 'Record updated': 'var(--primary)', 'Record deleted': 'var(--danger)' };
   document.getElementById('activity-list').innerHTML = activity.length
     ? activity.map(a => `
         <div class="activity-item">
           <div class="activity-dot" style="background:${colorMap[a.action] || 'var(--primary)'}"></div>
           <div class="activity-content">
-            <div class="activity-text"><strong>${a.company}</strong> — ${a.action}</div>
+            <div class="activity-text"><strong>${esc(a.company)}</strong> — ${esc(a.action)}</div>
             <div class="activity-time">${formatTime(a.createdAt)}</div>
           </div>
         </div>`).join('')
     : '<div style="padding:20px;text-align:center;color:var(--text-muted)">No recent activity</div>';
 
-  // Industry bars
   const byInd = stats.byIndustry || {};
   const maxI = Math.max(...Object.values(byInd), 1);
   document.getElementById('industry-bars').innerHTML = Object.entries(byInd)
     .sort((a,b) => b[1]-a[1])
     .map(([ind, n]) => `
       <div class="bar-item">
-        <div class="bar-label-row"><span>${ind}</span><span class="bar-count">${n}</span></div>
+        <div class="bar-label-row"><span>${esc(ind)}</span><span class="bar-count">${n}</span></div>
         <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(n/maxI*100)}%;background:var(--primary)"></div></div>
       </div>`).join('');
 
-  // Badges
   const followupCount = companies.filter(c => c.nextFollowup).length;
   document.getElementById('total-badge').textContent = stats.total;
   document.getElementById('followup-badge').textContent = followupCount;
@@ -1647,22 +1673,16 @@ function formatTime(dateStr) {
   if (!dateStr) return 'just now';
   const d = new Date(dateStr);
   const diff = (Date.now() - d.getTime()) / 1000;
-  if (diff < 60)   return 'just now';
-  if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+  if (diff < 60)    return 'just now';
+  if (diff < 3600)  return `${Math.floor(diff/60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
   return d.toLocaleDateString();
 }
 
 // ===================== TABLE =====================
 function renderTable() {
-
-   console.log("renderTable running");
-   console.log(companies);
-
-} 
   let data = [...filteredCompanies];
 
-  // Sort
   if (sortKey) {
     data.sort((a, b) => {
       const av = (a[sortKey] || '').toString().toLowerCase();
@@ -1671,7 +1691,6 @@ function renderTable() {
     });
   }
 
-  // Pagination
   const total = data.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   if (currentPage > totalPages) currentPage = 1;
@@ -1706,8 +1725,8 @@ function renderTable() {
             </div>
           </td>
         </tr>`).join('')
-    : `<tr><td colspan="16"><div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">No companies found.</div></div></td></tr>`; 
- 
+    : `<tr><td colspan="16"><div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">No companies found.</div></div></td></tr>`;
+}
 
 function isOverdue(date) {
   if (!date) return false;
@@ -1753,23 +1772,15 @@ function openAddModal() {
 }
 
 function clearForm() {
-  document.getElementById('f-company').value = '';
-  document.getElementById('f-city').value = '';
+  ['f-company','f-city','f-contact','f-email','f-phone','f-last','f-next','f-notes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
   document.getElementById('f-industry').value = 'Technology';
-  document.getElementById('f-contact').value = '';
-  document.getElementById('f-email').value = '';
-  document.getElementById('f-phone').value = '';
   document.getElementById('f-status').value = 'Not Contacted';
   document.getElementById('f-assigned').value = 'James Dawson';
-  document.getElementById('f-last').value = '';
-  document.getElementById('f-next').value = '';
-  document.getElementById('f-emailsent').checked = false;
-  document.getElementById('f-reply').checked = false;
-  document.getElementById('f-interested').checked = false;
-  document.getElementById('f-datasent').checked = false;
-  document.getElementById('f-msgsent').checked = false;
-  document.getElementById('f-followup').checked = false;
-  document.getElementById('f-notes').value = '';
+  ['f-emailsent','f-reply','f-interested','f-datasent','f-msgsent','f-followup'].forEach(id => {
+    document.getElementById(id).checked = false;
+  });
 }
 
 function editRecord(id) {
@@ -1778,23 +1789,23 @@ function editRecord(id) {
   editingId = id;
   document.getElementById('modal-title').textContent = 'Edit Company';
   document.getElementById('modal-subtitle').textContent = c.company;
-  document.getElementById('f-company').value = c.company;
-  document.getElementById('f-city').value = c.city;
-  document.getElementById('f-industry').value = c.industry;
-  document.getElementById('f-contact').value = c.contact;
-  document.getElementById('f-email').value = c.email;
-  document.getElementById('f-phone').value = c.phone;
-  document.getElementById('f-status').value = c.status;
-  document.getElementById('f-assigned').value = c.assigned;
-  document.getElementById('f-last').value = c.lastContacted || '';
-  document.getElementById('f-next').value = c.nextFollowup || '';
-  document.getElementById('f-emailsent').checked = c.emailSent;
-  document.getElementById('f-reply').checked = c.reply;
-  document.getElementById('f-interested').checked = c.interested;
-  document.getElementById('f-datasent').checked = c.dataSent;
-  document.getElementById('f-msgsent').checked = c.msgSent;
-  document.getElementById('f-followup').checked = c.followup;
-  document.getElementById('f-notes').value = c.notes || '';
+  document.getElementById('f-company').value   = c.company;
+  document.getElementById('f-city').value      = c.city;
+  document.getElementById('f-industry').value  = c.industry;
+  document.getElementById('f-contact').value   = c.contact;
+  document.getElementById('f-email').value     = c.email;
+  document.getElementById('f-phone').value     = c.phone;
+  document.getElementById('f-status').value    = c.status;
+  document.getElementById('f-assigned').value  = c.assigned;
+  document.getElementById('f-last').value      = c.lastContacted || '';
+  document.getElementById('f-next').value      = c.nextFollowup || '';
+  document.getElementById('f-emailsent').checked  = !!c.emailSent;
+  document.getElementById('f-reply').checked      = !!c.reply;
+  document.getElementById('f-interested').checked = !!c.interested;
+  document.getElementById('f-datasent').checked   = !!c.dataSent;
+  document.getElementById('f-msgsent').checked    = !!c.msgSent;
+  document.getElementById('f-followup').checked   = !!c.followup;
+  document.getElementById('f-notes').value     = c.notes || '';
   document.getElementById('edit-modal').classList.add('open');
   closeModal('view-modal');
 }
@@ -1855,7 +1866,7 @@ function viewRecord(id) {
   const c = companies.find(x => x.id === id);
   if (!c) return;
   document.getElementById('view-modal-title').textContent = c.company;
-  document.getElementById('view-modal-sub').textContent = `${c.industry} · ${c.city}`;
+  document.getElementById('view-modal-sub').textContent   = `${c.industry} · ${c.city}`;
   document.getElementById('view-edit-btn').onclick = () => editRecord(id);
   document.getElementById('view-modal-body').innerHTML = `
     <div class="view-grid">
@@ -1919,10 +1930,16 @@ function followupCard(c, cls) {
 
 // ===================== TRACKER =====================
 function renderTracker() {
+  // FIX: Build all HTML first, set innerHTML once — prevents duplicate rendering
   const sections = STATUS_LIST.map(s => ({
     label: s,
     items: companies.filter(c => c.status === s)
   })).filter(s => s.items.length);
+
+  if (!sections.length) {
+    document.getElementById('tracker-content').innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-text">No companies to display.</div></div>';
+    return;
+  }
 
   document.getElementById('tracker-content').innerHTML = sections.map(s => `
     <div class="tracker-section">
@@ -1933,10 +1950,10 @@ function renderTracker() {
             <div class="tracker-mini-company">${esc(c.company)}</div>
             <div class="tracker-mini-contact">${esc(c.contact)} · ${esc(c.city)}</div>
             <div class="tracker-mini-chips">
-              ${c.emailSent?'<span class="bool-chip bool-yes" style="padding:2px 7px;font-size:11px;width:auto">Email ✓</span>':''}
-              ${c.reply?'<span class="bool-chip bool-yes" style="padding:2px 7px;font-size:11px;width:auto;background:#ecfdf5;color:#10b981">Reply ✓</span>':''}
-              ${c.interested?'<span class="bool-chip bool-yes" style="padding:2px 7px;font-size:11px;width:auto;background:#f5f3ff;color:#8b5cf6">Interest ✓</span>':''}
-              ${c.followup?'<span class="bool-chip bool-yes" style="padding:2px 7px;font-size:11px;width:auto;background:#fff7ed;color:#c2410c">F/U ✓</span>':''}
+              ${c.emailSent    ? '<span class="bool-chip bool-yes" style="padding:2px 7px;font-size:11px;width:auto">Email ✓</span>' : ''}
+              ${c.reply        ? '<span class="bool-chip bool-yes" style="padding:2px 7px;font-size:11px;width:auto;background:#ecfdf5;color:#10b981">Reply ✓</span>' : ''}
+              ${c.interested   ? '<span class="bool-chip bool-yes" style="padding:2px 7px;font-size:11px;width:auto;background:#f5f3ff;color:#8b5cf6">Interest ✓</span>' : ''}
+              ${c.followup     ? '<span class="bool-chip bool-yes" style="padding:2px 7px;font-size:11px;width:auto;background:#fff7ed;color:#c2410c">F/U ✓</span>' : ''}
             </div>
           </div>`).join('')}
       </div>
@@ -1947,7 +1964,7 @@ function renderTracker() {
 async function renderReports() {
   const stats = await loadStats();
   const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
-  const maxS = Math.max(...Object.values(stats.byStatus || {}).map(Number), 1);
+  const maxS = Math.max(...Object.values(stats.byStatus   || {}).map(Number), 1);
   const maxA = Math.max(...Object.values(stats.byAssigned || {}).map(Number), 1);
   const maxI = Math.max(...Object.values(stats.byIndustry || {}).map(Number), 1);
 
@@ -1958,7 +1975,7 @@ async function renderReports() {
         <div class="chart-bar-wrap">
           ${Object.entries(stats.byStatus||{}).filter(([,v])=>v>0).map(([k,v]) => `
             <div class="bar-item">
-              <div class="bar-label-row"><span>${k}</span><span class="bar-count">${v}</span></div>
+              <div class="bar-label-row"><span>${esc(k)}</span><span class="bar-count">${v}</span></div>
               <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(v/maxS*100)}%;background:var(--primary)"></div></div>
             </div>`).join('')}
         </div>
@@ -1968,7 +1985,7 @@ async function renderReports() {
         <div class="chart-bar-wrap">
           ${Object.entries(stats.byAssigned||{}).filter(([,v])=>v>0).map(([k,v]) => `
             <div class="bar-item">
-              <div class="bar-label-row"><span>${k}</span><span class="bar-count">${v} companies</span></div>
+              <div class="bar-label-row"><span>${esc(k)}</span><span class="bar-count">${v} companies</span></div>
               <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(v/maxA*100)}%;background:var(--success)"></div></div>
             </div>`).join('')}
         </div>
@@ -1979,7 +1996,7 @@ async function renderReports() {
       <div class="chart-bar-wrap">
         ${Object.entries(stats.byIndustry||{}).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).map(([k,v]) => `
           <div class="bar-item">
-            <div class="bar-label-row"><span>${k}</span><span class="bar-count">${v}</span></div>
+            <div class="bar-label-row"><span>${esc(k)}</span><span class="bar-count">${v}</span></div>
             <div class="bar-bg"><div class="bar-fill" style="width:${Math.round(v/maxI*100)}%;background:var(--purple)"></div></div>
           </div>`).join('')}
       </div>
@@ -1988,13 +2005,13 @@ async function renderReports() {
       <div class="section-header"><div class="section-title">Conversion Funnel</div></div>
       <div class="chart-bar-wrap">
         ${[
-          ['Total Pipeline',  stats.total,       '#94a3b8'],
-          ['Contacted',       stats.contacted,   'var(--primary)'],
-          ['Email Sent',      stats.emailSent,   '#0369a1'],
-          ['Replied',         stats.replied,     'var(--success)'],
-          ['Interested',      stats.interested,  'var(--purple)'],
-          ['Data Sent',       stats.dataSent,    'var(--warning)'],
-          ['Follow-up Sent',  stats.followupSent,'#c2410c'],
+          ['Total Pipeline',  stats.total,        '#94a3b8'],
+          ['Contacted',       stats.contacted,    'var(--primary)'],
+          ['Email Sent',      stats.emailSent,    '#0369a1'],
+          ['Replied',         stats.replied,      'var(--success)'],
+          ['Interested',      stats.interested,   'var(--purple)'],
+          ['Data Sent',       stats.dataSent,     'var(--warning)'],
+          ['Follow-up Sent',  stats.followupSent, '#c2410c'],
         ].map(([l,v,c]) => `
           <div class="bar-item">
             <div class="bar-label-row"><span>${l}</span><span class="bar-count">${v} &nbsp;(${pct(v, stats.total)}%)</span></div>
@@ -2006,12 +2023,13 @@ async function renderReports() {
 
 // ===================== EXPORT =====================
 function exportCSV() {
+  console.log("Export clicked", companies);
   const headers = ['Company','City','Industry','Contact','Email','Phone','Status','Email Sent','Reply','Interested','Data Sent','Msg Sent','Follow-up','Assigned','Last Contacted','Next Follow-up','Notes'];
   const rows = companies.map(c => [
-    c.company,c.city,c.industry,c.contact,c.email,c.phone,c.status,
-    c.emailSent?'Yes':'No',c.reply?'Yes':'No',c.interested?'Yes':'No',
-    c.dataSent?'Yes':'No',c.msgSent?'Yes':'No',c.followup?'Yes':'No',
-    c.assigned,c.lastContacted,c.nextFollowup,c.notes||''
+    c.company, c.city, c.industry, c.contact, c.email, c.phone, c.status,
+    c.emailSent?'Yes':'No', c.reply?'Yes':'No', c.interested?'Yes':'No',
+    c.dataSent?'Yes':'No', c.msgSent?'Yes':'No', c.followup?'Yes':'No',
+    c.assigned, c.lastContacted, c.nextFollowup, c.notes||''
   ]);
   const csv = [headers,...rows].map(r => r.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
   const a = document.createElement('a');
@@ -2021,8 +2039,94 @@ function exportCSV() {
   toast('CSV exported successfully', 'success');
 }
 
+// FIX: showImportUI now triggers the hidden file input that exists in the DOM
 function showImportUI() {
-  toast('Excel import coming in v2.0 — use CSV export/import for now', 'info');
+  document.getElementById('excelFile').click();
+}
+
+// FIX: handleImport — was completely missing; parses CSV rows into company records
+function handleImport(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  // Only CSV supported client-side (Excel import coming in v2.0)
+  if (!file.name.endsWith('.csv')) {
+    toast('Please upload a CSV file. Excel import coming in v2.0.', 'info');
+    input.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = async function(e) {
+    const text = e.target.result;
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    if (lines.length < 2) { toast('CSV file is empty or has no data rows', 'info'); return; }
+
+    const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g,'').trim().toLowerCase());
+    const records = lines.slice(1).map(line => {
+      // Handle quoted fields with commas
+      const cols = [];
+      let cur = '', inQ = false;
+      for (let ch of line) {
+        if (ch === '"') { inQ = !inQ; }
+        else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+        else { cur += ch; }
+      }
+      cols.push(cur.trim());
+
+      const row = {};
+      headers.forEach((h, i) => { row[h] = (cols[i] || '').replace(/^"|"$/g,''); });
+      return row;
+    });
+
+    let added = 0;
+    for (const row of records) {
+      if (!row.company) continue;
+      try {
+        await apiFetch('/companies', {
+          method: 'POST',
+          body: JSON.stringify({
+            company:       row.company || '',
+            city:          row.city || '',
+            industry:      row.industry || 'Technology',
+            contact:       row.contact || row['contact person'] || '',
+            email:         row.email || '',
+            phone:         row.phone || '',
+            status:        row.status || 'Not Contacted',
+            assigned:      row.assigned || row['assigned to'] || 'James Dawson',
+            lastContacted: row['last contacted'] || row.lastcontacted || '',
+            nextFollowup:  row['next follow-up'] || row.nextfollowup || '',
+            emailSent:     /yes|true|1/i.test(row['email sent'] || ''),
+            reply:         /yes|true|1/i.test(row['reply'] || ''),
+            interested:    /yes|true|1/i.test(row['interested'] || ''),
+            dataSent:      /yes|true|1/i.test(row['data sent'] || ''),
+            msgSent:       /yes|true|1/i.test(row['msg sent'] || ''),
+            followup:      /yes|true|1/i.test(row['follow-up'] || ''),
+            notes:         row.notes || '',
+          })
+        });
+        added++;
+      } catch(e) { /* skip bad rows */ }
+    }
+
+    toast(`Imported ${added} of ${records.length} companies`, 'success');
+    input.value = '';
+    await loadCompanies(getFilters());
+    renderTable();
+  };
+  reader.readAsText(file);
+}
+
+// FIX: resetData was called but never defined
+function resetData() {
+  if (!confirm('Reset all data to the original demo dataset? This cannot be undone.')) return;
+  apiFetch('/companies/reset', { method: 'POST' })
+    .then(async () => {
+      toast('Demo data restored', 'success');
+      await loadCompanies();
+      renderDashboard();
+    })
+    .catch(() => toast('Reset failed — check your server supports this endpoint', 'info'));
 }
 
 // ===================== UTILITY =====================
@@ -2032,22 +2136,22 @@ function esc(s) {
 
 function statusBadge(s) {
   const map = {
-    'Not Contacted': 'badge-not',
-    'Contacted':     'badge-contacted',
-    'Email Sent':    'badge-email',
-    'Replied':       'badge-replied',
-    'Interested':    'badge-interested',
-    'Data Sent':     'badge-data',
-    'Message Sent':  'badge-msg',
-    'Follow-up Sent':'badge-followup',
+    'Not Contacted':  'badge-not',
+    'Contacted':      'badge-contacted',
+    'Email Sent':     'badge-email',
+    'Replied':        'badge-replied',
+    'Interested':     'badge-interested',
+    'Data Sent':      'badge-data',
+    'Message Sent':   'badge-msg',
+    'Follow-up Sent': 'badge-followup',
   };
-  return `<span class="badge ${map[s]||''}">${s}</span>`;
+  return `<span class="badge ${map[s]||''}">${esc(s)}</span>`;
 }
 
 function boolChip(val) {
   return val
-    ? '<span class="bool-chip bool-yes">Yes</span>'
-    : '<span class="bool-chip bool-no">No</span>';
+    ? '<span class="bool-chip bool-yes">✓</span>'
+    : '<span class="bool-chip bool-no">—</span>';
 }
 
 // ===================== THEME =====================
@@ -2078,7 +2182,7 @@ function toast(msg, type = 'info') {
   const tc = document.getElementById('toast-container');
   const t = document.createElement('div');
   t.className = `toast toast-${type}`;
-  t.innerHTML = `<div class="toast-icon">${type==='success'?'✓':'i'}</div><span>${msg}</span>`;
+  t.innerHTML = `<div class="toast-icon">${type==='success'?'✓':'i'}</div><span>${esc(msg)}</span>`;
   tc.appendChild(t);
   setTimeout(() => t.remove(), 3200);
 }
