@@ -99,6 +99,16 @@ const debug = await pool.query(`
 console.log('=== COMPANIES TABLE STRUCTURE ===');
 console.table(debug.rows);
 
+
+const idDebug = await pool.query(`
+  SELECT column_name, data_type, column_default
+  FROM information_schema.columns
+  WHERE table_name = 'companies'
+  AND column_name = 'id'
+`);
+
+console.log('ID DEBUG:', idDebug.rows);
+
 console.log('✅ PostgreSQL schema ready');
 }
 
