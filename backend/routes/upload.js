@@ -7,7 +7,7 @@ const fs      = require('fs');
 const { createCompany } = require('../db');
 
 const router  = express.Router();
-const upload  = multer({ dest: path.join(__dirname, '../../uploads/') });
+const upload  = multer({ dest: '/tmp/' }); // use /tmp — always exists on any server
 
 // Normalize a header string for flexible matching
 function norm(str) {
