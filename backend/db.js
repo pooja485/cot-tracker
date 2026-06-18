@@ -39,9 +39,25 @@ const SCHEMA = `
   );
 `;
 
+// ── Migrations — safely adds missing columns to existing tables ──
+const MIGRATIONS = `
+  ALTER TABLE companies ADD COLUMN IF NOT EXISTS reply          BOOLEAN DEFAULT FALSE;
+  ALTER TABLE companies ADD COLUMN IF NOT EXISTS interested     BOOLEAN DEFAULT FALSE;
+  ALTER TABLE companies ADD COLUMN IF NOT EXISTS data_sent      BOOLEAN DEFAULT FALSE;
+  ALTER TABLE companies ADD COLUMN IF NOT EXISTS msg_sent       BOOLEAN DEFAULT FALSE;
+  ALTER TABLE companies ADD COLUMN IF NOT EXISTS followup       BOOLEAN DEFAULT FALSE;
+  ALTER TABLE companies ADD COLUMN IF NOT EXISTS email_sent     BOOLEAN DEFAULT FALSE;
+  ALTER TABLE companies ADD COLUMN IF NOT EXISTS last_contacted TEXT    DEFAULT '';
+  ALTER TABLE companies ADD COLUMN IF NOT EXISTS next_followup  TEXT    DEFAULT '';
+  ALTER TABLE companies ADD COLUMN IF NOT EXISTS assigned       TEXT    DEFAULT '';
+  ALTER TABLE companies ADD COLUMN IF NOT EXISTS notes          TEXT    DEFAULT '';
+  ALTER TABLE companies ADD COLUMN IF NOT EXISTS updated_at     TIMESTAMPTZ DEFAULT NOW();
+`;
+
 // ── Init ──────────────────────────────────────────────
 async function initDB() {
-  await pool.query(SCHEMA);
+  await pool.query(SCHEMA);      // CREATE TABLE IF NOT EXISTS — safe every boot
+  await pool.query(MIGRATIONS);  // ADD COLUMN IF NOT EXISTS  — safe every boot
   console.log('✅ PostgreSQL schema ready');
 }
 
