@@ -83,13 +83,23 @@ async function initDB() {
   ];
 
   for (const [col, def] of migrations) {
-    if (!cols.includes(col)) {
-      await pool.query(`ALTER TABLE companies ADD COLUMN ${col} ${def}`);
-      console.log(`✅ Added column: ${col}`);
-    }
+  if (!cols.includes(col)) {
+    await pool.query(`ALTER TABLE companies ADD COLUMN ${col} ${def}`);
+    console.log(`✅ Added column: ${col}`);
   }
+}
 
-  console.log('✅ PostgreSQL schema ready');
+const debug = await pool.query(`
+  SELECT column_name, data_type
+  FROM information_schema.columns
+  WHERE table_name = 'companies'
+  ORDER BY ordinal_position
+`);
+
+console.log('=== COMPANIES TABLE STRUCTURE ===');
+console.table(debug.rows);
+
+console.log('✅ PostgreSQL schema ready');
 }
 
 // ── Row mapper (snake_case → camelCase) ───────────────
