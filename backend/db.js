@@ -50,6 +50,30 @@ async function initDB() {
     WHERE table_name = 'companies'
   `);
   const cols = rows.map(r => r.column_name);
+  const idInfo = await pool.query(`
+  SELECT data_type, column_default
+  FROM information_schema.columns
+  WHERE table_name='companies'
+  AND column_name='id'
+`);
+
+if (
+  idInfo.rows.length &&
+  idInfo.rows[0].data_type === 'text'
+) {
+  console.log('⚠️ Broken id column detected');
+
+  await pool.query(`
+    ALTER TABLE companies DROP COLUMN id CASCADE
+  `);
+
+  await pool.query(`
+    ALTER TABLE companies
+    ADD COLUMN id SERIAL PRIMARY KEY
+  `);
+
+  console.log('✅ Fixed id column');
+}
 
   // Rename old column names to new ones if needed
   if (cols.includes('name') && !cols.includes('company')) {
