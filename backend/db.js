@@ -39,25 +39,56 @@ const SCHEMA = `
   );
 `;
 
-// ── Migrations — safely adds missing columns to existing tables ──
-const MIGRATIONS = `
-  ALTER TABLE companies ADD COLUMN IF NOT EXISTS reply          BOOLEAN DEFAULT FALSE;
-  ALTER TABLE companies ADD COLUMN IF NOT EXISTS interested     BOOLEAN DEFAULT FALSE;
-  ALTER TABLE companies ADD COLUMN IF NOT EXISTS data_sent      BOOLEAN DEFAULT FALSE;
-  ALTER TABLE companies ADD COLUMN IF NOT EXISTS msg_sent       BOOLEAN DEFAULT FALSE;
-  ALTER TABLE companies ADD COLUMN IF NOT EXISTS followup       BOOLEAN DEFAULT FALSE;
-  ALTER TABLE companies ADD COLUMN IF NOT EXISTS email_sent     BOOLEAN DEFAULT FALSE;
-  ALTER TABLE companies ADD COLUMN IF NOT EXISTS last_contacted TEXT    DEFAULT '';
-  ALTER TABLE companies ADD COLUMN IF NOT EXISTS next_followup  TEXT    DEFAULT '';
-  ALTER TABLE companies ADD COLUMN IF NOT EXISTS assigned       TEXT    DEFAULT '';
-  ALTER TABLE companies ADD COLUMN IF NOT EXISTS notes          TEXT    DEFAULT '';
-  ALTER TABLE companies ADD COLUMN IF NOT EXISTS updated_at     TIMESTAMPTZ DEFAULT NOW();
-`;
-
 // ── Init ──────────────────────────────────────────────
 async function initDB() {
-  await pool.query(SCHEMA);      // CREATE TABLE IF NOT EXISTS — safe every boot
-  await pool.query(MIGRATIONS);  // ADD COLUMN IF NOT EXISTS  — safe every boot
+  // Create tables if they don't exist
+  await pool.query(SCHEMA);
+
+  // Check what columns actually exist and fix them
+  const { rows } = await pool.query(`
+    SELECT column_name FROM information_schema.columns
+    WHERE table_name = 'companies'
+  `);
+  const cols = rows.map(r => r.column_name);
+
+  // Rename old column names to new ones if needed
+  if (cols.includes('name') && !cols.includes('company')) {
+    await pool.query('ALTER TABLE companies RENAME COLUMN name TO company');
+    console.log('✅ Renamed column: name → company');
+  }
+  if (cols.includes('company_name') && !cols.includes('company')) {
+    await pool.query('ALTER TABLE companies RENAME COLUMN company_name TO company');
+    console.log('✅ Renamed column: company_name → company');
+  }
+
+  // Add any missing columns safely
+  const migrations = [
+    [`reply`,          `BOOLEAN DEFAULT FALSE`],
+    [`interested`,     `BOOLEAN DEFAULT FALSE`],
+    [`data_sent`,      `BOOLEAN DEFAULT FALSE`],
+    [`msg_sent`,       `BOOLEAN DEFAULT FALSE`],
+    [`followup`,       `BOOLEAN DEFAULT FALSE`],
+    [`email_sent`,     `BOOLEAN DEFAULT FALSE`],
+    [`last_contacted`, `TEXT DEFAULT ''`],
+    [`next_followup`,  `TEXT DEFAULT ''`],
+    [`assigned`,       `TEXT DEFAULT ''`],
+    [`notes`,          `TEXT DEFAULT ''`],
+    [`city`,           `TEXT DEFAULT ''`],
+    [`industry`,       `TEXT DEFAULT 'Technology'`],
+    [`contact`,        `TEXT DEFAULT ''`],
+    [`email`,          `TEXT DEFAULT ''`],
+    [`phone`,          `TEXT DEFAULT ''`],
+    [`status`,         `TEXT DEFAULT 'Not Contacted'`],
+    [`updated_at`,     `TIMESTAMPTZ DEFAULT NOW()`],
+  ];
+
+  for (const [col, def] of migrations) {
+    if (!cols.includes(col)) {
+      await pool.query(`ALTER TABLE companies ADD COLUMN ${col} ${def}`);
+      console.log(`✅ Added column: ${col}`);
+    }
+  }
+
   console.log('✅ PostgreSQL schema ready');
 }
 
