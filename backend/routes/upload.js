@@ -42,6 +42,15 @@ router.post('/', upload.single('file'), async (req, res) => {
     const sheetName = workbook.SheetNames[0];
     const data      = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
+    const MAX_ROWS = 5000;
+
+    if (data.length > MAX_ROWS) {
+      return res.status(400).json({
+        success: false,
+        error: `Maximum ${MAX_ROWS} rows allowed`
+     });
+    }
+
     console.log(`📊 Parsed ${data.length} rows from sheet: ${sheetName}`);
     if (data.length > 0) console.log('🔑 Columns found:', Object.keys(data[0]));
 
