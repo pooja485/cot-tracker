@@ -198,6 +198,16 @@ async function getCompanyById(id) {
 }
 
 async function createCompany(data) {
+
+  const existing = await pool.query(
+    `SELECT id FROM companies WHERE LOWER(company) = LOWER($1)`,
+    [data.company]
+  );
+
+  if (existing.rows.length > 0) {
+    throw new Error('Company already exists');
+  }
+
   const { rows } = await pool.query(`
     INSERT INTO companies
       (company, city, industry, contact, email, phone, status,
@@ -206,17 +216,26 @@ async function createCompany(data) {
     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
     RETURNING *`,
     [
-      data.company, data.city || '', data.industry || 'Technology',
-      data.contact || '', data.email || '', data.phone || '',
+      data.company,
+      data.city || '',
+      data.industry || 'Technology',
+      data.contact || '',
+      data.email || '',
+      data.phone || '',
       data.status || 'Not Contacted',
-      !!data.emailSent, !!data.reply, !!data.interested,
-      !!data.dataSent, !!data.msgSent, !!data.followup,
+      !!data.emailSent,
+      !!data.reply,
+      !!data.interested,
+      !!data.dataSent,
+      !!data.msgSent,
+      !!data.followup,
       data.assigned || '',
-      data.lastContacted || null,  // NULL not '' for date fields
-      data.nextFollowup  || null,  // NULL not '' for date fields
+      data.lastContacted || null,
+      data.nextFollowup || null,
       data.notes || ''
     ]
   );
+
   await logActivity(data.company, 'Added to pipeline');
   return mapRow(rows[0]);
 }
