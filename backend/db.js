@@ -167,7 +167,9 @@ async function createCompany(data) {
       data.status || 'Not Contacted',
       !!data.emailSent, !!data.reply, !!data.interested,
       !!data.dataSent, !!data.msgSent, !!data.followup,
-      data.assigned || '', data.lastContacted || '', data.nextFollowup || '',
+      data.assigned || '',
+      data.lastContacted || null,  // NULL not '' for date fields
+      data.nextFollowup  || null,  // NULL not '' for date fields
       data.notes || ''
     ]
   );
@@ -190,7 +192,9 @@ async function updateCompany(id, data) {
       data.status || 'Not Contacted',
       !!data.emailSent, !!data.reply, !!data.interested,
       !!data.dataSent, !!data.msgSent, !!data.followup,
-      data.assigned || '', data.lastContacted || '', data.nextFollowup || '',
+      data.assigned || '',
+      data.lastContacted || null,
+      data.nextFollowup  || null,
       data.notes || '', id
     ]
   );
