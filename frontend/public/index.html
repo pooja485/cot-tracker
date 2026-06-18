@@ -2277,31 +2277,43 @@ async function handleImport(input) {
       return row;
     });
 
+    // Flexible column picker — works with any header format
+    const p = (row, ...keys) => {
+      for (const k of keys) {
+        const v = row[k] || row[k.toLowerCase()] || row[k.toUpperCase()] || '';
+        if (String(v).trim()) return String(v).trim();
+      }
+      return '';
+    };
+    const b = (row, ...keys) => /yes|true|1/i.test(p(row, ...keys));
+
     let added = 0, failed = 0;
     for (const row of records) {
-      const name = row.company || row['company name'] || '';
+      const name = p(row, 'company','Company','COMPANY','name','Name','NAME',
+                        'company name','Company Name','business','Business');
       if (!name.trim()) { failed++; continue; }
       try {
         await apiFetch('/companies', {
           method: 'POST',
           body: JSON.stringify({
             company:       name,
-            city:          row.city || '',
-            industry:      row.industry || 'Technology',
-            contact:       row.contact || row['contact person'] || '',
-            email:         row.email || '',
-            phone:         row.phone || '',
-            status:        row.status || 'Not Contacted',
-            assigned:      row['assigned to'] || row.assigned || '',
-            lastContacted: row['last contacted'] || row['last contact'] || '',
-            nextFollowup:  row['next follow-up'] || row['next followup'] || '',
-            emailSent:     /yes|true|1/i.test(row['email sent'] || ''),
-            reply:         /yes|true|1/i.test(row['reply'] || row['reply received'] || ''),
-            interested:    /yes|true|1/i.test(row['interested'] || ''),
-            dataSent:      /yes|true|1/i.test(row['data sent'] || ''),
-            msgSent:       /yes|true|1/i.test(row['msg sent'] || row['message sent'] || ''),
-            followup:      /yes|true|1/i.test(row['follow-up'] || row['followup'] || ''),
-            notes:         row.notes || '',
+            city:          p(row,'city','City','CITY','location','Location','address','Address','ADDRESS'),
+            industry:      p(row,'industry','Industry','INDUSTRY','type','Type','TYPE','sector','Sector') || 'General',
+            contact:       p(row,'contact','Contact','contact person','Contact Person','person','Person','owner','Owner'),
+            email:         p(row,'email','Email','EMAIL','e-mail','E-mail'),
+            phone:         p(row,'phone','Phone','PHONE','mobile','Mobile','contact no','Contact No',
+                             'CONTACT.NO','telephone','Telephone','phone number','Phone Number'),
+            status:        p(row,'status','Status','STATUS') || 'Not Contacted',
+            assigned:      p(row,'assigned','Assigned','assigned to','Assigned To'),
+            lastContacted: p(row,'last contacted','Last Contacted','last contact','Last Contact'),
+            nextFollowup:  p(row,'next follow-up','Next Follow-up','next followup','Next Followup'),
+            notes:         p(row,'notes','Notes','NOTES','remarks','Remarks','comments','Comments'),
+            emailSent:     b(row,'email sent','Email Sent'),
+            reply:         b(row,'reply','Reply','replied','Replied'),
+            interested:    b(row,'interested','Interested'),
+            dataSent:      b(row,'data sent','Data Sent'),
+            msgSent:       b(row,'msg sent','Msg Sent','message sent','Message Sent'),
+            followup:      b(row,'follow-up','Follow-up','followup','Followup'),
           })
         });
         added++;
