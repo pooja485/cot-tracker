@@ -2121,6 +2121,8 @@ function renderTracker() {
       <div class="tracker-grid">
         ${s.items.map(c => `
           <div class="tracker-mini-card">
+               onclick="openCompany(${c.id})"
+               style="cursor:pointer">
             <div class="tracker-mini-company">${esc(c.company)}</div>
             <div class="tracker-mini-contact">${esc(c.contact)} · ${esc(c.city)}</div>
             <div class="tracker-mini-chips">
@@ -2211,6 +2213,30 @@ function exportCSV() {
   a.download = 'COT_Export_' + new Date().toISOString().split('T')[0] + '.csv';
   a.click();
   toast('CSV exported successfully', 'success');
+}
+
+function openCompany(id) {
+  const company = companies.find(c => c.id === id);
+
+  if (!company) {
+    toast('Company not found', 'error');
+    return;
+  }
+
+  alert(
+    `Company: ${company.company}\n\n` +
+    `Contact: ${company.contact || '-'}\n` +
+    `Email: ${company.email || '-'}\n` +
+    `Phone: ${company.phone || '-'}\n` +
+    `City: ${company.city || '-'}\n` +
+    `Industry: ${company.industry || '-'}\n` +
+    `Status: ${company.status || '-'}\n` +
+    `Notes: ${company.notes || '-'}`
+  );
+}
+
+function showImportUI() {
+  document.getElementById('excelFile').click();
 }
 
 // FIX: showImportUI now triggers the hidden file input that exists in the DOM
