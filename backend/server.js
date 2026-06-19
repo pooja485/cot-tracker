@@ -9,6 +9,7 @@ const { initDB } = require('./db');
 const requireAuth = require('./middleware/auth');
 
 const app  = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
 
