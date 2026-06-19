@@ -2216,7 +2216,7 @@ function exportCSV() {
 }
 
 function openCompany(id) {
-  const company = companies.find(c => c.id === id);
+  const company = companies.find(c => String(c.id) === String(id));
 
   if (!company) {
     toast('Company not found', 'error');
