@@ -2120,7 +2120,7 @@ function renderTracker() {
       <div class="tracker-title">${statusBadge(s.label)} <span style="font-weight:400;color:var(--text-muted);font-size:13px">&nbsp;${s.items.length} ${s.items.length===1?'company':'companies'}</span></div>
       <div class="tracker-grid">
         ${s.items.map(c => `
-          <div class="tracker-mini-card">
+          <div class="tracker-mini-card"
                onclick="openCompany(${c.id})"
                style="cursor:pointer">
             <div class="tracker-mini-company">${esc(c.company)}</div>
