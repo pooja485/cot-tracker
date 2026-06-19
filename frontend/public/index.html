@@ -2223,16 +2223,20 @@ function openCompany(id) {
     return;
   }
 
-  alert(
-    `Company: ${company.company}\n\n` +
-    `Contact: ${company.contact || '-'}\n` +
-    `Email: ${company.email || '-'}\n` +
-    `Phone: ${company.phone || '-'}\n` +
-    `City: ${company.city || '-'}\n` +
-    `Industry: ${company.industry || '-'}\n` +
-    `Status: ${company.status || '-'}\n` +
-    `Notes: ${company.notes || '-'}`
-  );
+  document.getElementById('modalCompanyName').textContent = company.company || '-';
+  document.getElementById('modalContact').textContent = company.contact || '-';
+  document.getElementById('modalEmail').textContent = company.email || '-';
+  document.getElementById('modalPhone').textContent = company.phone || '-';
+  document.getElementById('modalCity').textContent = company.city || '-';
+  document.getElementById('modalIndustry').textContent = company.industry || '-';
+  document.getElementById('modalStatus').textContent = company.status || '-';
+  document.getElementById('modalNotes').textContent = company.notes || '-';
+
+  document.getElementById('companyModal').style.display = 'flex';
+}
+
+function closeCompanyModal() {
+  document.getElementById('companyModal').style.display = 'none';
 }
 
 function showImportUI() {
@@ -2472,5 +2476,58 @@ async function init() {
 
 init();
 </script>
+
+<!-- Company Details Modal -->
+<div id="companyModal"
+     style="
+     display:none;
+     position:fixed;
+     top:0;
+     left:0;
+     width:100%;
+     height:100%;
+     background:rgba(0,0,0,0.5);
+     z-index:9999;
+     align-items:center;
+     justify-content:center;">
+
+  <div style="
+      background:white;
+      width:600px;
+      max-width:90%;
+      border-radius:12px;
+      padding:24px;
+      position:relative;">
+
+      <button
+        onclick="closeCompanyModal()"
+        style="
+        position:absolute;
+        right:15px;
+        top:15px;
+        border:none;
+        background:none;
+        font-size:22px;
+        cursor:pointer;">
+        ×
+      </button>
+
+      <h2 id="modalCompanyName"></h2>
+
+      <p><strong>Contact:</strong> <span id="modalContact"></span></p>
+      <p><strong>Email:</strong> <span id="modalEmail"></span></p>
+      <p><strong>Phone:</strong> <span id="modalPhone"></span></p>
+      <p><strong>City:</strong> <span id="modalCity"></span></p>
+      <p><strong>Industry:</strong> <span id="modalIndustry"></span></p>
+      <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+
+      <hr>
+
+      <p><strong>Notes</strong></p>
+      <div id="modalNotes"></div>
+
+  </div>
+</div>
+
 </body>
 </html>
