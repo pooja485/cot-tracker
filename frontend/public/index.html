@@ -1929,7 +1929,9 @@ function resetFilters() {
   document.getElementById('filter-industry').selectedIndex = 0;
   document.getElementById('global-search').value = '';
 
+  currentPage = 1;
   applyFilters();
+}
 
 
 function handleSearch(val) {
