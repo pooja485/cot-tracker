@@ -1924,10 +1924,11 @@ async function applyFilters() {
 }
 
 function resetFilters() {
-  document.getElementById('filter-status').value = '';
-  document.getElementById('filter-industry').value = '';
-  document.getElementById('filter-assigned').value = '';
+  document.getElementById('filter-status').selectedIndex = 0;
+  document.getElementById('filter-assigned').selectedIndex = 0;
+  document.getElementById('filter-industry').selectedIndex = 0;
   document.getElementById('global-search').value = '';
+
   applyFilters();
 }
 
