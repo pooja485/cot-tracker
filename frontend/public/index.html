@@ -1768,6 +1768,9 @@ async function renderDashboard() {
 
   const stats = await loadStats();
   const activity = await loadActivity();
+  const userRole = localStorage.getItem('role') || 'employee';
+
+  console.log('Current Role:', userRole);
 
   const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
 
