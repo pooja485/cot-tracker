@@ -10,12 +10,34 @@ const APP_PASSWORD = process.env.APP_PASSWORD || 'cot2024';
 router.post('/login', (req, res) => {
   const { password } = req.body;
 
-  if (!password || password !== APP_PASSWORD) {
-    return res.status(401).json({ success: false, error: 'Incorrect password' });
-  }
+let role = '';
 
-  const token = jwt.sign({ app: 'cot-tracker' }, JWT_SECRET, { expiresIn: '7d' });
-  res.json({ success: true, token });
+if (password === 'admin123') {
+  role = 'admin';
+}
+else if (password === 'employee123') {
+  role = 'employee';
+}
+else {
+  return res.status(401).json({
+    success: false,
+    error: 'Incorrect password'
+  });
+}
+
+const token = jwt.sign(
+  {
+    app: 'cot-tracker',
+    role
+  },
+  JWT_SECRET,
+  { expiresIn: '7d' }
+);
+
+res.json({
+  success: true,
+  token,
+  role
 });
 
 // POST /api/auth/verify  — lets frontend silently validate a stored token
